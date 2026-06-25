@@ -1,0 +1,24 @@
+{
+  "_comment": "Copy this file to config.json and fill in your API keys. All keys are optional unless you use the corresponding feature.",
+  "api_keys": {
+    "openrouter": "sk-or-v1-...",
+    "anthropic": "",
+    "openai": "",
+    "gitlab_token": ""
+  },
+  "models": {
+    "embedder": "all-MiniLM-L6-v2"
+  },
+  "experiment_defaults": {
+    "categories": null,
+    "templates": ["answer_only", "cq_answer"],
+    "max_examples": null,
+    "random_seed": 42
+  },
+  "output": {
+    "results_dir": "results",
+    "figure_format": "pdf",
+    "plots_enabled": true,
+    "log_level": "INFO"
+  }
+}

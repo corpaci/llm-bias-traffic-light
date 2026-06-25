@@ -1,0 +1,40 @@
+{
+  "run_name": "gpt5_clean",
+  "date": "2026-06-12",
+  "time": "17:41:25",
+  "started_at": "2026-06-12T17:41:25",
+  "command": "run_multimodel_sweep.py --models gpt5 --max-tokens 512 --repeats 3 --concurrency 8 --run-name gpt5_clean",
+  "args": {
+    "models": [
+      "gpt5"
+    ],
+    "categories": [
+      "Gender_identity",
+      "Nationality",
+      "Religion",
+      "Age",
+      "Disability_status",
+      "Race_ethnicity",
+      "Race_x_gender",
+      "Race_x_SES",
+      "SES",
+      "Sexual_orientation",
+      "Physical_appearance"
+    ],
+    "sample_frac": 0.1,
+    "repeats": 3,
+    "temperature": 0.7,
+    "max_tokens": 512,
+    "seed": 42,
+    "request_delay": 0.0,
+    "concurrency": 8,
+    "output": "C:\\Users\\corpa\\OneDrive\\Documents\\Knowledge Base\\Explorations\\LLM bias\\bias-semaphor-project\\llm-bias-traffic-light\\results\\sweep",
+    "run_name": "gpt5_clean",
+    "model_name": "all-MiniLM-L6-v2",
+    "mock": false,
+    "smoke": false,
+    "force": false,
+    "resummarize": false
+  },
+  "status": "running"
+}

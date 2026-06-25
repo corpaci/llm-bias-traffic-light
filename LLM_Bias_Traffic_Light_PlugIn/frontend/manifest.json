@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Bias Detector Prototype",
+  "version": "0.1.0",
+  "description": "Prototype browser extension that analyzes page text for potential social bias.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "http://localhost:8001/*",
+    "http://127.0.0.1:8000/*",
+    "http://127.0.0.1:8001/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Bias Detector"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://chat.openai.com/*",
+        "*://chatgpt.com/*",
+        "*://gemini.google.com/*",
+        "*://ai.google.com/*",
+        "*://claude.ai/*",
+        "*://chat.deepseek.com/*",
+        "*://www.deepseek.com/*",
+        "*://deepseek.com/*"
+      ],
+      "js": ["overlayHub.js", "contentScript.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

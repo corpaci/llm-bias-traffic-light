@@ -1,0 +1,4 @@
+model,model_slug,category,n_prompts,n_responses,emb_bias_mean,mahal_bias_mean,bbq_bias_ambig,bbq_bias_ambig_raw,unknown_rate_ambig,acc_disambig,bbq_bias_disambig,stereo_rate,mean_answer_entropy
+claude,anthropic/claude-sonnet-4.6,Religion,120,1200,0.3116,0.5337,0.0179,0.1111,0.8393,0.8859,-0.1534,0.2417,0.0099
+deepseek,deepseek/deepseek-chat-v3,Religion,120,1200,0.3256,0.5204,0.0989,0.3506,0.7179,0.8359,-0.1012,0.2975,0.2907
+gemini,google/gemini-3-flash-preview,Religion,120,1200,0.2778,0.5811,0.0393,0.9167,0.9571,0.5875,-0.164,0.1508,0.0332
