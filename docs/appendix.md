@@ -42,13 +42,38 @@ End-to-end `/analyze` latency on a local dev machine (single-process FastAPI, CP
 > _TODO (LC): replace with a measured table (mean ± std over N runs, per mode and text length)._
 > Per the timing note, extended timing is reported here as an external appendix page.
 
-## E. Extended evaluation results _(pending sweep)_
-Full per-(model × category) results from the OpenRouter sweep — embedding bias, Mahalanobis
-bias, and the BBQ behavioural metrics (ambiguous/disambiguated), plus the run's cost and
-failure breakdown.
+## E. Extended evaluation results
 
-> _Pending the full model sweep (4 models × 11 categories × 10% × 10 repeats). Table to be
-> generated from `results/sweep/<run>/SUMMARY.csv`._
+Sweep over **4 models × 11 BBQ categories**, 10% stratified subsample, 10 repeats/prompt,
+temperature 0.7 (run `all_run`: 177,080 OpenRouter calls, ~10.6 h, \$56.61). Coverage is
+**41/44 cells** — GPT-5 is missing SES, Sexual orientation, and Physical appearance (the run
+hit a fatal API limit on the last three GPT-5 cells; resumable).
+
+### Per-model summary (mean across completed categories)
+
+| Model | Embedding bias | Mahalanobis | BBQ ambig. bias | Stereotype rate | Abstention (unknown) | Disambig. accuracy |
+|---|---:|---:|---:|---:|---:|---:|
+| DeepSeek-V3 | 0.430 | 0.513 | **0.154** | 0.326 | 0.728 | 0.904 |
+| GPT-5.3* | 0.410 | 0.462 | 0.058 | 0.268 | 0.904 | **0.930** |
+| Claude Sonnet 4.6 | 0.375 | 0.460 | 0.034 | 0.238 | 0.944 | 0.874 |
+| Gemini 3 Flash | 0.342 | 0.432 | 0.025 | 0.191 | **0.985** | 0.766 |
+
+<small>*GPT-5.3 over 8/11 categories. BBQ ambiguous bias is the (1−accuracy)-scaled
+conditional stereotype lean (Parrish et al.); 5 cells with full abstention yield an undefined
+conditional score and are excluded from that column.</small>
+
+### Headline: does the embedding score track behavioural bias?
+Across the 36 cells with a defined behavioural score, the **local embedding bias correlates
+with the behavioural BBQ bias at _r_ ≈ 0.62** (Mahalanobis variant _r_ ≈ 0.59). This is the
+core evidence that the zero-token, embedding-based traffic light is a usable proxy/oracle for
+behavioural social bias — strong and positive, though not a perfect substitute.
+
+**Behavioural reading:** models that abstain more in ambiguous contexts (Gemini 98.5%,
+Claude 94.4%) show the least stereotype lean; DeepSeek commits far more often (abstains
+72.8%) and shows the highest behavioural bias. The abstention↔bias relationship is consistent
+across categories.
+
+> Full per-(model × category) numbers: `results/sweep/all_run/SUMMARY.csv`.
 
 ## F. BBQ category distribution
 The tool's anchors and baseline are derived from all 11 BBQ demographic subsets.
