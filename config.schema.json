@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LLM Bias Traffic Light Configuration",
+  "type": "object",
+  "required": [],
+  "properties": {
+    "_comment": {
+      "type": "string",
+      "description": "Template instructions (can be deleted)"
+    },
+    "api_keys": {
+      "type": "object",
+      "description": "API keys for LLM and services. All optional.",
+      "properties": {
+        "openrouter": {
+          "type": "string",
+          "description": "OpenRouter API key for run_experiment.py LLM calls"
+        },
+        "anthropic": {
+          "type": "string",
+          "description": "Anthropic Claude API key (optional)"
+        },
+        "openai": {
+          "type": "string",
+          "description": "OpenAI GPT API key (optional)"
+        },
+        "gitlab_token": {
+          "type": "string",
+          "description": "GitLab token (optional, for CI/CD)"
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "description": "Model configuration for embeddings",
+      "properties": {
+        "embedder": {
+          "type": "string",
+          "description": "Sentence-transformer model name. Default: all-MiniLM-L6-v2 (fast, ~50MB), alternatives: all-mpnet-base-v2 (slower, better quality)",
+          "default": "all-MiniLM-L6-v2"
+        }
+      }
+    },
+    "experiment_defaults": {
+      "type": "object",
+      "description": "Default parameters for geometry and analysis experiments",
+      "properties": {
+        "categories": {
+          "type": ["array", "null"],
+          "description": "BBQ bias categories to analyze. null=all 11 categories, or list specific ones: [\"Gender_identity\", \"Age\", \"Religion\", ...]",
+          "items": {
+            "type": "string"
+          }
+        },
+        "templates": {
+          "type": "array",
+          "description": "Embedding templates for analysis",
+          "items": {
+            "type": "string",
+            "enum": ["answer_only", "cq_answer", "question_answer", "context_only", "separate"]
+          }
+        },
+        "max_examples": {
+          "type": ["integer", "null"],
+          "description": "Maximum examples per category (null=all)"
+        },
+        "random_seed": {
+          "type": "integer",
+          "description": "Random seed for reproducibility",
+          "default": 42
+        }
+      }
+    },
+    "output": {
+      "type": "object",
+      "description": "Output and logging settings",
+      "properties": {
+        "results_dir": {
+          "type": "string",
+          "description": "Directory to save experiment results",
+          "default": "results"
+        },
+        "figure_format": {
+          "type": "string",
+          "enum": ["pdf", "png"],
+          "description": "Format for saved figures",
+          "default": "pdf"
+        },
+        "plots_enabled": {
+          "type": "boolean",
+          "description": "Enable figure generation (disable for faster runs)",
+          "default": true
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["DEBUG", "INFO", "WARNING", "ERROR"],
+          "description": "Logging verbosity",
+          "default": "INFO"
+        }
+      }
+    }
+  }
+}

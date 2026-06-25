@@ -1,0 +1,20 @@
+# Dependencies for experiment scripts (Windows-compatible):
+#   run_experiment.py      — LLM probing via API
+#   run_bbq_geometry.py    — embedding geometry analysis (SAIR-style)
+#   visualize_bias.py      — publication figures
+#
+# Install:
+#   pip install -r requirements_experiments.txt
+#
+# Optional LLM API clients (only needed for run_experiment.py):
+#   pip install anthropic openai
+
+torch>=2.0.0
+sentence-transformers>=2.7.0
+scikit-learn>=1.3.0
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+scipy>=1.10.0
+seaborn>=0.12.0
+openai

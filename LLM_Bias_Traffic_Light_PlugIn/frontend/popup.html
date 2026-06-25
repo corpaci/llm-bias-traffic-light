@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Bias Detector</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header" id="appHeader">
+        <div class="header-title-group">
+          <h1 class="title">Bias Detector</h1>
+          <span class="info-icon" id="infoIcon" title="Auto-scans new LLM replies. Use Scan page to re-scan manually.">ⓘ</span>
+        </div>
+      </header>
+
+      <main>
+        <div class="action-controls">
+          <button id="scanButton" class="button primary">Scan page</button>
+          <div id="turnPickerGroup" class="turn-picker-group hidden">
+            <label class="input-label" for="turnPicker">Past conversation</label>
+            <select id="turnPicker" class="text-input"></select>
+            <button id="scanTurnButton" class="button secondary">Scan conversation</button>
+          </div>
+        </div>
+
+        <p id="status" class="status muted"></p>
+
+        <section class="settings-accordion">
+          <button id="advancedSettingsToggle" class="accordion-header" type="button">
+            <span>Settings</span>
+            <span class="accordion-icon">▸</span>
+          </button>
+          <div id="advancedSettingsContent" class="accordion-content">
+            <div class="settings-group">
+              <div class="settings-row">
+                <span class="label">On-page overlays</span>
+                <label class="toggle-switch">
+                  <input id="overlayEnabled" type="checkbox" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="overlay-module-list">
+                <label class="module-toggle">
+                  <input type="checkbox" data-overlay-module="score" checked />
+                  Score
+                </label>
+                <label class="module-toggle">
+                  <input type="checkbox" data-overlay-module="explanation" checked />
+                  Explanation
+                </label>
+                <label class="module-toggle">
+                  <input type="checkbox" data-overlay-module="flagged" />
+                  Flagged
+                </label>
+                <label class="module-toggle">
+                  <input type="checkbox" data-overlay-module="spider" checked />
+                  Chart
+                </label>
+              </div>
+            </div>
+            <div class="settings-group">
+              <div class="row">
+                <label class="input-label" for="modeDepth">Depth</label>
+                <select id="modeDepth" class="text-input">
+                  <option value="normal">Normal</option>
+                  <option value="deep">Deep</option>
+                </select>
+              </div>
+              <div class="row">
+                <label class="input-label" for="biasTypes">Bias types</label>
+                <select id="biasTypes" class="text-input" multiple size="6">
+                  <option value="gender" selected>Gender</option>
+                  <option value="nationality">Nationality</option>
+                  <option value="religion">Religion</option>
+                  <option value="age">Age</option>
+                  <option value="disability">Disability</option>
+                  <option value="sexual_orientation">Sexual orientation</option>
+                  <option value="race">Race / ethnicity</option>
+                  <option value="race_x_gender">Race &times; gender</option>
+                  <option value="race_x_ses">Race &times; SES</option>
+                  <option value="ses">Socioeconomic status</option>
+                  <option value="physical_appearance">Physical appearance</option>
+                </select>
+              </div>
+              <div class="row">
+                <label class="input-label" for="hierarchyWeighting">Hierarchy weighting</label>
+                <select id="hierarchyWeighting" class="text-input">
+                  <option value="length">Length-weighted</option>
+                  <option value="mean">Mean</option>
+                  <option value="max">Max</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <label class="module-toggle" for="compareEmbedders">Compare embedders (slow)</label>
+                <input id="compareEmbedders" type="checkbox" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <p id="interactionPlaceholder" class="interaction-placeholder muted">
+          No chat detected yet. Open a supported LLM page to start.
+        </p>
+
+        <section id="qaCard" class="qa-card hidden">
+          <span class="label">LLM response</span>
+          <div id="lastAnswer" class="qa-snippet muted">Waiting for a new answer…</div>
+          <details class="qa-details">
+            <summary>Prompt &amp; context</summary>
+            <p class="input-label">Prompt</p>
+            <div id="lastPrompt" class="qa-pill muted">Waiting for a new prompt…</div>
+            <p class="input-label">Context</p>
+            <div id="lastContext" class="qa-pill muted">Waiting for page context…</div>
+          </details>
+        </section>
+
+        <section id="resultCard" class="result-card hidden">
+          <div class="result-row result-row-risk">
+            <span id="riskDisplay" class="risk-display">
+              <span class="label">Risk</span>
+              <span id="riskLevel" class="badge badge-neutral">–</span>
+              <span id="scorePercent" class="score-percent">–</span>
+            </span>
+          </div>
+          <p id="explanation" class="explanation muted">Run a scan to see analysis.</p>
+
+          <div id="chartCard" class="chart-section">
+            <canvas id="biasRadar" width="320" height="180"></canvas>
+            <p id="biasRadarHint" class="status muted chart-hint"></p>
+          </div>
+
+          <div id="sentencesSection" class="sentences-section">
+            <span class="label">Flagged sentences</span>
+            <ul id="sentencesList" class="sentences-list"></ul>
+          </div>
+
+          <div id="hierarchySection" class="hierarchy hidden">
+            <div class="result-row">
+              <span class="label">Hierarchical roll-up</span>
+              <span id="hierarchyMeta" class="muted" style="font-size: 11px;"></span>
+            </div>
+            <div id="hierarchyTree"></div>
+          </div>
+
+          <div id="comparisonSection" class="comparison hidden">
+            <span class="label">Embedder comparison</span>
+            <div id="comparisonBody"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
