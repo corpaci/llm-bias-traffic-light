@@ -2,10 +2,67 @@
 // highlights biased sentences, and (for supported LLM sites) automatically
 // captures user prompt + LLM answer pair.
 
+function isBiasExtensionUiElement(el) {
+  if (!el || el.nodeType !== Node.ELEMENT_NODE) return false;
+  if (el.id === "bias-overlay-hub" || el.id === "bias-overlay-show-fab") return true;
+  if (el.closest?.("#bias-overlay-hub, #bias-overlay-show-fab, [data-bias-extension-ui]")) return true;
+  return false;
+}
+
+function normalizeCaptureText(s) {
+  return (s || "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function isExtensionOrChatUiNoise(text) {
+  const t = normalizeCaptureText(text);
+  if (!t) return true;
+  if (t.includes("bias detector")) return true;
+  if (t.includes("bias info")) return true;
+  if (t.startsWith("bias:")) return true;
+  if (t.includes("bias score")) return true;
+  if (t.includes("risk level")) return true;
+  if (t.includes("traffic light")) return true;
+  if (t.includes("embedder=")) return true;
+  if (t.includes("sentence_transformers")) return true;
+  if (t.includes("category scores ->")) return true;
+  if (t.includes("show bias info")) return true;
+  if (t.includes("currently unavailable")) return true;
+  if (t.includes("learn more") && t.includes("opens in new tab")) return true;
+  if (t.includes("claude is ai and can make mistakes")) return true;
+  if (t.includes("please double-check responses")) return true;
+  if (/^claude\s+(fable|sonnet|haiku|opus)/i.test((text || "").trim())) return true;
+  if (t.includes("fable") && t.includes("unavailable")) return true;
+  if (t.includes("scan page")) return true;
+  if (t.includes("last captured interaction")) return true;
+  if (t === "share" || t === "reply..." || t === "copy") return true;
+  if (t.includes("retry") && t.length < 24) return true;
+  if (t.includes("edit") && t.length < 20) return true;
+  if (/^\d+\.\d{2}\s*·\s*(low|medium|high)$/i.test(t)) return true;
+  return false;
+}
+
+function sanitizeCapturedMessageText(text) {
+  if (!text) return "";
+  const lines = (text || "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l && !isExtensionOrChatUiNoise(l));
+  return lines.join("\n").trim();
+}
+
+function compareDomOrder(a, b) {
+  if (a === b) return 0;
+  const pos = a.compareDocumentPosition(b);
+  if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+  if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+  return 0;
+}
+
 function extractVisibleText() {
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       if (!node.parentElement) return NodeFilter.FILTER_REJECT;
+      if (isBiasExtensionUiElement(node.parentElement)) return NodeFilter.FILTER_REJECT;
       const style = window.getComputedStyle(node.parentElement);
       if (style && (style.visibility === "hidden" || style.display === "none")) {
         return NodeFilter.FILTER_REJECT;
@@ -109,7 +166,7 @@ function hasMeaningfulConversationPair(pair) {
   const prompt = (pair.prompt || "").trim();
   const answer = (pair.answer || "").trim();
   if (!prompt || !answer) return false;
-  if (prompt.length < 8 || answer.length < 20) return false;
+  if (prompt.length < 8 || answer.length < 12) return false;
   if (prompt === answer) return false;
 
   const normalize = (s) =>
@@ -135,6 +192,12 @@ function hasMeaningfulConversationPair(pair) {
     "bias score",
     "risk level",
     "scan page",
+    "traffic light",
+    "embedder=",
+    "sentence_transformers",
+    "currently unavailable",
+    "learn more",
+    "opens in new tab",
   ];
   if (shortUiNoise.some((x) => p.includes(x) || a.includes(x))) return false;
 
@@ -167,15 +230,28 @@ function getChatMessagesOrdered() {
   }
 
   if (hostname.includes("claude.ai")) {
-    return queryTopLevelMessageEls(
-      root,
-      "[data-testid='user-message'], [data-testid='assistant-message'], [data-message-author-role]"
-    )
+    const claudeMessageSelector = [
+      "[data-testid='user-message']",
+      "[data-testid='human-message']",
+      ".font-user-message",
+      ".font-claude-response",
+      "[data-testid='assistant-message']",
+      "[data-testid='ai-message']",
+      "[data-testid='message-assistant']",
+      "[data-message-author-role]",
+    ].join(", ");
+
+    const els = queryTopLevelMessageEls(root, claudeMessageSelector)
+      .filter((el) => !isBiasExtensionUiElement(el))
+      .sort(compareDomOrder);
+
+    return els
       .map((el) => ({
-        role: getRoleForMessageEl(el),
+        role: getClaudeRoleForMessageEl(el),
         text: getTextForMessageEl(el),
       }))
-      .filter((m) => (m.role === "user" || m.role === "assistant") && m.text.length > 5);
+      .filter((m) => (m.role === "user" || m.role === "assistant") && m.text.length > 2)
+      .filter((m) => !isExtensionOrChatUiNoise(m.text));
   }
 
   if (hostname.includes("gemini.google.com") || hostname.includes("ai.google.com")) {
@@ -251,13 +327,14 @@ function buildTurnsFromMessages(messages) {
   for (let i = 0; i < messages.length; i++) {
     if (messages[i].role !== "user") continue;
 
-    const prompt = (messages[i].text || "").trim();
+    const prompt = sanitizeCapturedMessageText((messages[i].text || "").trim());
+    if (!prompt || isExtensionOrChatUiNoise(prompt)) continue;
     const answerParts = [];
     for (let j = i + 1; j < messages.length; j++) {
       if (messages[j].role === "user") break;
       if (messages[j].role === "assistant") {
-        const part = (messages[j].text || "").trim();
-        if (part) answerParts.push(part);
+        const part = sanitizeCapturedMessageText((messages[j].text || "").trim());
+        if (part && !isExtensionOrChatUiNoise(part)) answerParts.push(part);
       }
     }
 
@@ -310,8 +387,41 @@ function getConversationTurnsPayload() {
   return turns;
 }
 
+function getClaudeRoleForMessageEl(el) {
+  if (!el) return "unknown";
+  const testId = (el.getAttribute?.("data-testid") || "").toLowerCase();
+  if (testId === "user-message" || testId === "human-message" || testId.includes("human")) {
+    return "user";
+  }
+  if (
+    testId === "assistant-message" ||
+    testId === "ai-message" ||
+    testId.includes("assistant") ||
+    testId.includes("ai-message")
+  ) {
+    return "assistant";
+  }
+
+  const cls = String(el.className || "").toLowerCase();
+  if (cls.includes("font-claude-response") || cls.includes("claude-response")) return "assistant";
+  if (cls.includes("font-user-message") || cls.includes("user-message")) return "user";
+
+  const explicit = el.getAttribute?.("data-message-author-role");
+  if (explicit) return explicit.toLowerCase();
+
+  return getRoleForMessageEl(el);
+}
+
 function getRoleForMessageEl(el) {
   if (!el) return "unknown";
+  const testId = (el.getAttribute?.("data-testid") || "").toLowerCase();
+  if (testId === "assistant-message" || testId.includes("assistant-message") || testId === "ai-message") {
+    return "assistant";
+  }
+  if (testId === "user-message" || testId === "human-message" || testId.includes("human-message")) {
+    return "user";
+  }
+
   const explicit = el.getAttribute?.("data-message-author-role");
   if (explicit) return explicit.toLowerCase();
 
@@ -326,7 +436,12 @@ function getRoleForMessageEl(el) {
     .join(" ")
     .toLowerCase();
 
-  if (hints.includes("assistant") || hints.includes("model") || hints.includes("claude") || hints.includes("gemini")) {
+  if (
+    hints.includes("assistant") ||
+    hints.includes("model-response") ||
+    hints.includes("font-claude-response") ||
+    hints.includes("gemini")
+  ) {
     return "assistant";
   }
   if (hints.includes("user") || hints.includes("human") || hints.includes("prompt") || hints.includes("query")) {
@@ -336,9 +451,23 @@ function getRoleForMessageEl(el) {
 }
 
 function getTextForMessageEl(el) {
-  if (!el) return "";
+  if (!el || isBiasExtensionUiElement(el)) return "";
+  const innerSelectors = [
+    "[data-message-content-inner]",
+    ".standard-markdown",
+    ".progressive-markdown",
+    ".markdown",
+    ".prose",
+  ];
+  for (const selector of innerSelectors) {
+    const inner = el.querySelector?.(selector);
+    if (inner && !isBiasExtensionUiElement(inner)) {
+      const text = sanitizeCapturedMessageText((inner.innerText || "").trim());
+      if (text) return text;
+    }
+  }
   const content = el.querySelector?.("[data-message-content-inner]") || el;
-  return (content.innerText || "").trim();
+  return sanitizeCapturedMessageText((content.innerText || "").trim());
 }
 
 function clearBiasHighlights() {
@@ -361,6 +490,7 @@ function highlightSentenceOnce(sentence) {
     {
       acceptNode(node) {
         if (!node.parentElement) return NodeFilter.FILTER_REJECT;
+        if (isBiasExtensionUiElement(node.parentElement)) return NodeFilter.FILTER_REJECT;
         const style = window.getComputedStyle(node.parentElement);
         if (
           style &&
@@ -712,12 +842,12 @@ function extractLatestTurnForGemini() {
 
   const finalizePair = (prompt, answer) => {
     if (!prompt || !answer) return null;
-
+    
     // Also clean the prompt to remove "Vous avez dit" / "You said" markers
     const cleanPrompt = (prompt || "")
       .replace(/(?:vous avez dit|you said)\s*[:\-–]?\s*/gi, "")
       .trim();
-
+    
     const cleanAnswer = (answer || "")
       .replace(/(?:gemini a dit|gemini said)\s*[:\-–]?\s*/gi, "")
       .split("\n")
@@ -1126,288 +1256,16 @@ function extractLatestTurnForGemini() {
 }
 
 function extractLatestTurnForClaude() {
-  const root =
-    document.querySelector("[data-testid='conversation'], [aria-label*='Conversation'], .Conversation, main") ||
-    document.body;
-
-  const normalize = (s) =>
-    (s || "")
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .trim();
-
-  const isUiNoise = (text) => {
-    const t = normalize(text);
-    if (!t || t.length < 10) return true;
-    if (t.includes("bias detector")) return true;
-    if (t.startsWith("bias:")) return true;
-    if (t.includes("bias score")) return true;
-    if (t.includes("risk level")) return true;
-    if (t.includes("scan page")) return true;
-    if (t.includes("last captured interaction")) return true;
-    if (t.includes("claude is ai and can make mistakes")) return true;
-    if (t.includes("please double-check responses")) return true;
-    if (t.includes("copy") && t.length < 20) return true;
-    if (t.includes("retry") && t.length < 20) return true;
-    if (t.includes("edit") && t.length < 20) return true;
-    if (t === "share") return true;
-    if (t === "reply...") return true;
-    return false;
-  };
-
-  const cleanAnswerText = (text) =>
-    (text || "")
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => {
-        const ll = normalize(l);
-        if (!ll) return false;
-        if (isUiNoise(ll)) return false;
-        if (ll === "0" || ll === "low" || ll === "medium" || ll === "high") return false;
-        if (/^sonnet(\s|\b)/i.test(l)) return false;
-        if (/^haiku(\s|\b)/i.test(l)) return false;
-        if (/^opus(\s|\b)/i.test(l)) return false;
-        if (/^claude(\s|\b)/i.test(l) && ll.length <= 20) return false;
-        return true;
-      })
-      .join("\n")
-      .trim();
-
-  const classifyRole = (el) => {
-    const hints = [
-      el.getAttribute("data-testid"),
-      el.getAttribute("data-message-author-role"),
-      el.getAttribute("aria-label"),
-      el.className,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-
-    if (
-      hints.includes("assistant") ||
-      hints.includes("claude") ||
-      hints.includes("model")
-    ) {
-      return "assistant";
-    }
-    if (hints.includes("user") || hints.includes("human") || hints.includes("prompt")) {
-      return "user";
-    }
-    return null;
-  };
-
-  const selectors = [
-    "[data-testid='user-message']",
-    "[data-testid='assistant-message']",
-    "[data-testid*='user']",
-    "[data-testid*='assistant']",
-    "[data-testid*='message']",
-    "[data-message-author-role]",
-    "[role='listitem']",
-    "[role='article']",
-    "article",
-    "div[class*='message']",
-    "div[class*='font-claude-message']",
-    "div[class*='prose']",
-  ];
-
-  const raw = Array.from(root.querySelectorAll(selectors.join(", ")));
-  const items = raw
-    .map((el) => {
-      const text = (el.innerText || "").trim();
-      return { text, role: classifyRole(el) };
-    })
-    .filter((x) => x.text.length >= 12 && x.text.length <= 25000)
-    .filter((x) => !isUiNoise(x.text));
-
-  const deduped = [];
-  for (const item of items) {
-    if (!deduped.length || normalize(deduped[deduped.length - 1].text) !== normalize(item.text)) {
-      deduped.push(item);
+  const messages = getChatMessagesOrdered();
+  const turns = buildTurnsFromMessages(messages);
+  if (turns.length > 0) {
+    const last = turns[turns.length - 1];
+    const prompt = sanitizeCapturedMessageText((last.prompt || "").trim());
+    const answer = sanitizeCapturedMessageText((last.answer || "").trim());
+    if (prompt && answer && hasMeaningfulConversationPair({ prompt, answer })) {
+      return { prompt, answer };
     }
   }
-
-  const overlap = (a, b) => {
-    const aa = normalize(a);
-    const bb = normalize(b);
-    if (!aa || !bb) return 0;
-    if (aa === bb) return 1;
-    const short = aa.length <= bb.length ? aa : bb;
-    const long = aa.length > bb.length ? aa : bb;
-    if (short.length < 20) return 0;
-    if (long.includes(short)) return short.length / long.length;
-    return 0;
-  };
-
-  // Claude often splits one assistant turn into multiple DOM blocks.
-  // Merge nearby assistant/neutral blocks and score richer candidates.
-  const buildMergedAssistantCandidates = (items, anchorIdx, maxChunks = 14) => {
-    const candidates = [];
-    for (let end = anchorIdx; end < items.length; end++) {
-      const it = items[end];
-      if (!it || !it.text) continue;
-      if (end > anchorIdx && it.role === "user") break;
-      for (let chunks = 1; chunks <= maxChunks; chunks++) {
-        const start = end - chunks + 1;
-        if (start < anchorIdx) break;
-        const partSlice = [];
-        for (let i = start; i <= end; i++) {
-          const cur = items[i];
-          if (!cur || !cur.text) continue;
-          if (cur.role === "user") continue;
-          if (isUiNoise(cur.text)) continue;
-          const prev = partSlice[partSlice.length - 1];
-          if (!prev || normalize(prev) !== normalize(cur.text)) {
-            partSlice.push(cur.text);
-          }
-        }
-        const merged = cleanAnswerText(partSlice.join("\n\n"));
-        if (merged && merged.length >= 24) candidates.push(merged);
-      }
-    }
-    return candidates;
-  };
-
-  const expandAssistant = (assistantIdx) => {
-    const parts = [];
-    for (let i = assistantIdx; i < deduped.length && parts.length < 8; i++) {
-      const it = deduped[i];
-      if (i > assistantIdx && it.role === "user") break;
-      if (isUiNoise(it.text)) continue;
-      if (it.role === "user") continue;
-      const last = parts[parts.length - 1];
-      if (!last || normalize(last) !== normalize(it.text)) parts.push(it.text);
-    }
-    return cleanAnswerText(parts.join("\n\n"));
-  };
-
-  // Preferred: anchor on latest user prompt, then merge following assistant blocks.
-  if (deduped.length >= 2) {
-    let lastUserIdx = -1;
-    for (let i = deduped.length - 1; i >= 0; i--) {
-      if (deduped[i].role === "user") {
-        lastUserIdx = i;
-        break;
-      }
-    }
-    if (lastUserIdx !== -1) {
-      const prompt = (deduped[lastUserIdx].text || "").trim();
-      let assistantAnchor = -1;
-      for (let i = lastUserIdx + 1; i < deduped.length; i++) {
-        if (deduped[i].role === "assistant") {
-          assistantAnchor = i;
-          break;
-        }
-        // If we hit another user before assistant, this user turn has no reply yet.
-        if (deduped[i].role === "user") break;
-      }
-
-      if (assistantAnchor !== -1) {
-        const mergedCandidates = buildMergedAssistantCandidates(deduped, assistantAnchor, 16);
-        let answer = expandAssistant(assistantAnchor) || cleanAnswerText(deduped[assistantAnchor].text);
-        let bestScore = -Infinity;
-        for (const c of mergedCandidates) {
-          if (!c) continue;
-          if (overlap(prompt, c) >= 0.75) continue;
-          const paras = c.split(/\n{2,}/).filter((p) => p.trim().length > 0).length;
-          const score = Math.min(14, Math.floor(c.length / 160)) + Math.min(6, paras);
-          if (score > bestScore) {
-            bestScore = score;
-            answer = c;
-          }
-        }
-        if (prompt && answer && overlap(prompt, answer) < 0.75 && answer.length >= 20) {
-          return { prompt, answer };
-        }
-      }
-    }
-  }
-
-  // Strict textual fallback only (no generic chrono). Keep full block lines.
-  const pageText = root.innerText || document.body.innerText || "";
-  const patterns = [
-    /User:\s*([\s\S]*?)\nAssistant:\s*([\s\S]*?)(?=\nUser:|\nAssistant:|$)/gi,
-    /You:\s*([\s\S]*?)\nClaude:\s*([\s\S]*?)(?=\nYou:|\nClaude:|$)/gi,
-    /Human:\s*([\s\S]*?)\nAssistant:\s*([\s\S]*?)(?=\nHuman:|\nAssistant:|$)/gi,
-    /Human:\s*([\s\S]*?)\nClaude:\s*([\s\S]*?)(?=\nHuman:|\nClaude:|$)/gi,
-  ];
-  let latest = null;
-  for (const re of patterns) {
-    let match;
-    while ((match = re.exec(pageText)) !== null) {
-      const prompt = (match[1] || "").trim();
-      const answer = cleanAnswerText(match[2] || "");
-      if (!prompt || !answer) continue;
-      if (isUiNoise(prompt) || isUiNoise(answer)) continue;
-      if (overlap(prompt, answer) >= 0.75) continue;
-      latest = { prompt, answer };
-    }
-  }
-
-  // If we couldn't match role-labeled patterns, fall back to a question-anchored
-  // strategy (works for Claude when role attrs change).
-  if (!latest && deduped.length >= 2) {
-    let qIdx = -1;
-    for (let i = deduped.length - 1; i >= 0; i--) {
-      const t = (deduped[i].text || "").trim();
-      if (!t || isUiNoise(t)) continue;
-      if (t.includes("?")) {
-        qIdx = i;
-        break;
-      }
-    }
-    if (qIdx !== -1 && qIdx + 1 < deduped.length) {
-      const promptText = (deduped[qIdx].text || "").trim();
-      const parts = [];
-      for (let i = qIdx + 1; i < deduped.length && parts.length < 20; i++) {
-        const t = (deduped[i].text || "").trim();
-        if (!t || isUiNoise(t)) continue;
-        if (i > qIdx + 1 && t.includes("?") && t.length < 420) break;
-        const prev = parts[parts.length - 1];
-        if (!prev || normalize(prev) !== normalize(t)) parts.push(t);
-      }
-      const answer = cleanAnswerText(parts.join("\n\n"));
-      if (promptText && answer && answer.length >= 40 && overlap(promptText, answer) < 0.75) {
-        return { prompt: promptText, answer };
-      }
-    }
-  }
-
-  if (latest) return latest;
-
-  // Last-resort Claude fallback from visible lines:
-  // - take the latest substantial line containing '?'
-  // - merge following non-noise lines as answer until next likely user question.
-  const lines = (root.innerText || document.body.innerText || "")
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length >= 8 && !isUiNoise(l));
-  if (lines.length >= 2) {
-    let qIdx = -1;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      if (lines[i].includes("?") && lines[i].length >= 20) {
-        qIdx = i;
-        break;
-      }
-    }
-    if (qIdx !== -1 && qIdx + 1 < lines.length) {
-      const prompt = lines[qIdx];
-      const parts = [];
-      for (let i = qIdx + 1; i < lines.length && parts.length < 14; i++) {
-        const line = lines[i];
-        if (!line || isUiNoise(line)) continue;
-        if (i > qIdx + 1 && line.includes("?") && line.length < 420) break;
-        const prev = parts[parts.length - 1];
-        if (!prev || normalize(prev) !== normalize(line)) parts.push(line);
-      }
-      const answer = cleanAnswerText(parts.join("\n\n"));
-      if (prompt && answer && answer.length >= 16 && overlap(prompt, answer) < 0.8) {
-        return { prompt, answer };
-      }
-    }
-  }
-
   return null;
 }
 
@@ -2077,7 +1935,7 @@ function detectAndSendLatestTurn() {
     }
     // DeepSeek/Claude UIs sometimes surface short UI labels as "messages".
     // If either side is too short, don't send to backend.
-    if ((isDeepseek || isClaude) && (promptText.length < 10 || answerText.length < 20)) {
+    if ((isDeepseek || isClaude) && (promptText.length < 10 || answerText.length < 12)) {
       console.log("Skipping too-short DeepSeek/Claude pair");
       return;
     }
@@ -2105,6 +1963,7 @@ function detectAndSendLatestTurn() {
         tlPrompt.includes("sonnet") ||
         tlPrompt.includes("haiku") ||
         tlPrompt.includes("opus") ||
+        tlPrompt.includes("fable") ||
         tlPrompt === "claude" ||
         tlPrompt === "claude 3" ||
         tlPrompt === "claude 3.5" ||
@@ -2116,9 +1975,13 @@ function detectAndSendLatestTurn() {
       }
       if (
         tlAnswer.includes("claude is ai and can make mistakes") ||
-        tlAnswer.includes("please double-check responses")
+        tlAnswer.includes("please double-check responses") ||
+        tlAnswer.includes("currently unavailable") ||
+        tlAnswer.includes("traffic light") ||
+        tlAnswer.includes("embedder=") ||
+        tlAnswer.includes("sentence_transformers")
       ) {
-        console.log("Skipping Claude disclaimer as answer");
+        console.log("Skipping Claude disclaimer/UI noise as answer");
         return;
       }
     }
@@ -2168,6 +2031,7 @@ function detectAndSendLatestTurn() {
         prompt: pair.prompt,
         context: parsed.context || "",
         answer: finalAnswer,
+        mode_speed: "fast",
         mode_depth: "normal",
       },
     });

@@ -321,6 +321,8 @@
 
     rootEl = document.createElement("div");
     rootEl.id = "bias-overlay-hub";
+    rootEl.setAttribute("data-bias-extension-ui", "true");
+    rootEl.setAttribute("aria-hidden", "true");
     rootEl.style.position = "fixed";
     rootEl.style.bottom = "16px";
     rootEl.style.right = "16px";
@@ -378,6 +380,8 @@
     showFabEl = document.createElement("button");
     showFabEl.type = "button";
     showFabEl.id = "bias-overlay-show-fab";
+    showFabEl.setAttribute("data-bias-extension-ui", "true");
+    showFabEl.setAttribute("aria-hidden", "true");
     showFabEl.textContent = "Show bias info";
     showFabEl.title = "Show on-page info boxes";
     showFabEl.style.position = "fixed";

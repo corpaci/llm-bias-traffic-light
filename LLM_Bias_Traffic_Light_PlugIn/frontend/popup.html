@@ -69,7 +69,7 @@
                 </select>
               </div>
               <div class="row">
-                <label class="input-label" for="biasTypes">Bias types</label>
+                <label class="input-label" for="biasTypes">Bias types (BBQ)</label>
                 <select id="biasTypes" class="text-input" multiple size="6">
                   <option value="gender" selected>Gender</option>
                   <option value="nationality">Nationality</option>
@@ -83,18 +83,6 @@
                   <option value="ses">Socioeconomic status</option>
                   <option value="physical_appearance">Physical appearance</option>
                 </select>
-              </div>
-              <div class="row">
-                <label class="input-label" for="hierarchyWeighting">Hierarchy weighting</label>
-                <select id="hierarchyWeighting" class="text-input">
-                  <option value="length">Length-weighted</option>
-                  <option value="mean">Mean</option>
-                  <option value="max">Max</option>
-                </select>
-              </div>
-              <div class="settings-row">
-                <label class="module-toggle" for="compareEmbedders">Compare embedders (slow)</label>
-                <input id="compareEmbedders" type="checkbox" />
               </div>
             </div>
           </div>
@@ -134,19 +122,6 @@
           <div id="sentencesSection" class="sentences-section">
             <span class="label">Flagged sentences</span>
             <ul id="sentencesList" class="sentences-list"></ul>
-          </div>
-
-          <div id="hierarchySection" class="hierarchy hidden">
-            <div class="result-row">
-              <span class="label">Hierarchical roll-up</span>
-              <span id="hierarchyMeta" class="muted" style="font-size: 11px;"></span>
-            </div>
-            <div id="hierarchyTree"></div>
-          </div>
-
-          <div id="comparisonSection" class="comparison hidden">
-            <span class="label">Embedder comparison</span>
-            <div id="comparisonBody"></div>
           </div>
         </section>
       </main>

@@ -27,13 +27,6 @@ const interactionPlaceholderEl = document.getElementById("interactionPlaceholder
 const advancedSettingsToggle = document.getElementById("advancedSettingsToggle");
 const advancedSettingsContent = document.getElementById("advancedSettingsContent");
 const advancedSettingsAccordion = document.querySelector(".settings-accordion");
-const hierarchyWeightingEl = document.getElementById("hierarchyWeighting");
-const compareEmbeddersEl = document.getElementById("compareEmbedders");
-const hierarchySectionEl = document.getElementById("hierarchySection");
-const hierarchyMetaEl = document.getElementById("hierarchyMeta");
-const hierarchyTreeEl = document.getElementById("hierarchyTree");
-const comparisonSectionEl = document.getElementById("comparisonSection");
-const comparisonBodyEl = document.getElementById("comparisonBody");
 
 let conversationTurns = [];
 
@@ -47,6 +40,33 @@ const DEFAULT_OVERLAY_PREFS = {
     spider: true,
   },
 };
+
+const DEFAULT_BIAS_TYPES = ["gender"];
+
+function getSelectedBiasTypes() {
+  if (!biasTypesEl) return DEFAULT_BIAS_TYPES;
+  const selected = Array.from(biasTypesEl.selectedOptions)
+    .map((option) => option.value)
+    .filter(Boolean);
+  return selected.length > 0 ? selected : DEFAULT_BIAS_TYPES;
+}
+
+function saveBiasTypeSelection() {
+  if (!chrome?.storage?.local) return;
+  chrome.storage.local.set({ bias_types: getSelectedBiasTypes() });
+}
+
+function loadBiasTypeSelection() {
+  if (!biasTypesEl || !chrome?.storage?.local) return;
+  chrome.storage.local.get({ bias_types: DEFAULT_BIAS_TYPES }, (result) => {
+    const selected = Array.isArray(result?.bias_types) && result.bias_types.length > 0
+      ? result.bias_types
+      : DEFAULT_BIAS_TYPES;
+    for (const option of biasTypesEl.options) {
+      option.selected = selected.includes(option.value);
+    }
+  });
+}
 
 // ============================================================================
 // UI STATE MANAGEMENT
@@ -486,118 +506,6 @@ function bindOverlayControls() {
 // RESULT RENDERING
 // ============================================================================
 
-function _shortModel(name) {
-  return String(name).replace("all-", "").replace("-v2", "");
-}
-
-function renderHierarchy(hierarchy) {
-  if (!hierarchySectionEl || !hierarchyTreeEl) return;
-  const paras = hierarchy && Array.isArray(hierarchy.paragraphs) ? hierarchy.paragraphs : [];
-  if (!hierarchy || paras.length === 0) {
-    hierarchySectionEl.classList.add("hidden");
-    hierarchyTreeEl.innerHTML = "";
-    return;
-  }
-  hierarchySectionEl.classList.remove("hidden");
-  const respLevel = String(hierarchy.level || "low").toLowerCase();
-  const respPct = Math.round((Number(hierarchy.score) || 0) * 100);
-  if (hierarchyMetaEl) {
-    hierarchyMetaEl.textContent =
-      `overall ${respPct}% (${respLevel}) · ${hierarchy.weighting || "length"}-weighted`;
-  }
-  hierarchyTreeEl.innerHTML = "";
-  paras.forEach((p, idx) => {
-    const pLevel = String(p.level || "low").toLowerCase();
-    const pPct = Math.round((Number(p.score) || 0) * 100);
-    const wrap = document.createElement("div");
-    wrap.className = "hierarchy-paragraph";
-    const head = document.createElement("div");
-    head.className = "hierarchy-paragraph-head";
-    const label = document.createElement("span");
-    label.className = "muted";
-    label.style.fontSize = "11px";
-    label.textContent = `¶ ${idx + 1}`;
-    const badge = document.createElement("span");
-    badge.className = `badge badge-${pLevel}`;
-    badge.textContent = `${pLevel} · ${pPct}%`;
-    head.appendChild(label);
-    head.appendChild(badge);
-    wrap.appendChild(head);
-    (Array.isArray(p.sentences) ? p.sentences : []).forEach((s) => {
-      const sLevel = String(s.level || "low").toLowerCase();
-      const sPct = Math.round((Number(s.score) || 0) * 100);
-      const row = document.createElement("div");
-      row.className = "hierarchy-sentence";
-      const dot = document.createElement("span");
-      dot.className = `dot dot-${sLevel}`;
-      const t = document.createElement("span");
-      t.className = "hierarchy-sentence-text";
-      t.textContent = `${sPct}%  ${s.text}`;
-      row.appendChild(dot);
-      row.appendChild(t);
-      wrap.appendChild(row);
-    });
-    hierarchyTreeEl.appendChild(wrap);
-  });
-}
-
-function renderEmbedderComparison(cmp) {
-  if (!comparisonSectionEl || !comparisonBodyEl) return;
-  const models = cmp && Array.isArray(cmp.models) ? cmp.models : [];
-  if (!cmp || models.length === 0) {
-    comparisonSectionEl.classList.add("hidden");
-    comparisonBodyEl.innerHTML = "";
-    return;
-  }
-  comparisonSectionEl.classList.remove("hidden");
-  comparisonBodyEl.innerHTML = "";
-
-  const summary = document.createElement("div");
-  summary.className = "muted";
-  summary.style.fontSize = "11px";
-  summary.style.marginBottom = "4px";
-  summary.textContent = `mean divergence: ${(Number(cmp.mean_divergence) || 0).toFixed(3)}`;
-  comparisonBodyEl.appendChild(summary);
-
-  const catScores = cmp.category_scores || {};
-  const categories = new Set();
-  models.forEach((m) => Object.keys(catScores[m] || {}).forEach((c) => categories.add(c)));
-
-  const table = document.createElement("table");
-  table.className = "comparison-table";
-  const head = document.createElement("tr");
-  ["category", ...models.map(_shortModel), "Δ", "agree"].forEach((h) => {
-    const th = document.createElement("th");
-    th.textContent = h;
-    head.appendChild(th);
-  });
-  table.appendChild(head);
-
-  Array.from(categories).sort().forEach((c) => {
-    const tr = document.createElement("tr");
-    const catTd = document.createElement("td");
-    catTd.textContent = c.replace(/_/g, " ");
-    tr.appendChild(catTd);
-    models.forEach((m) => {
-      const td = document.createElement("td");
-      const v = (catScores[m] || {})[c];
-      td.textContent = typeof v === "number" ? v.toFixed(2) : "–";
-      tr.appendChild(td);
-    });
-    const dTd = document.createElement("td");
-    const d = (cmp.divergence || {})[c];
-    dTd.textContent = typeof d === "number" ? d.toFixed(2) : "–";
-    tr.appendChild(dTd);
-    const aTd = document.createElement("td");
-    const agree = (cmp.level_agreement || {})[c];
-    aTd.textContent = agree ? "✓" : "✗";
-    aTd.className = agree ? "agree-yes" : "agree-no";
-    tr.appendChild(aTd);
-    table.appendChild(tr);
-  });
-  comparisonBodyEl.appendChild(table);
-}
-
 function renderResult(result) {
   const { bias_score, biased_sentences, explanation } = result;
   
@@ -676,38 +584,7 @@ function renderResult(result) {
   }
 
   sentencesListEl.innerHTML = "";
-  const sentenceScores = Array.isArray(result.sentence_scores)
-    ? result.sentence_scores
-    : [];
-  if (sentenceScores.length > 0) {
-    // Rich per-sentence breakdown (deep mode): color-coded level + score.
-    sentenceScores.forEach((s) => {
-      const li = document.createElement("li");
-      li.classList.add("sentence-scored");
-
-      const meta = document.createElement("div");
-      meta.className = "sentence-meta";
-      const level = String(s.level || "low").toLowerCase();
-      const badge = document.createElement("span");
-      badge.className = `badge badge-${level}`;
-      const pct = Math.round((Number(s.score) || 0) * 100);
-      badge.textContent = `${level} · ${pct}%`;
-      meta.appendChild(badge);
-      const tag = document.createElement("span");
-      tag.className = "sentence-tag muted";
-      const cat = String(s.category || "").replace(/_/g, " ");
-      tag.textContent = [cat, s.direction].filter(Boolean).join(" · ");
-      meta.appendChild(tag);
-
-      const txt = document.createElement("div");
-      txt.className = "sentence-text";
-      txt.textContent = s.text;
-
-      li.appendChild(meta);
-      li.appendChild(txt);
-      sentencesListEl.appendChild(li);
-    });
-  } else if (!biased_sentences || biased_sentences.length === 0) {
+  if (!biased_sentences || biased_sentences.length === 0) {
     const li = document.createElement("li");
     li.textContent = "No potentially biased sentences detected by prototype.";
     li.classList.add("muted");
@@ -720,21 +597,16 @@ function renderResult(result) {
     });
   }
 
-  renderHierarchy(result.hierarchy);
-  renderEmbedderComparison(result.embedder_comparison);
-
   // Update UI visibility
   updateUIVisibility();
 
-  // Ask the content script to visually highlight biased sentences on the page.
-  // Prefer scored sentence texts; fall back to the flagged strings.
-  const highlightTexts =
-    sentenceScores.length > 0
-      ? sentenceScores.map((s) => s.text)
-      : Array.isArray(biased_sentences)
-      ? biased_sentences
-      : [];
-  highlightSentencesOnPage(highlightTexts);
+  // Ask the content script to visually highlight biased sentences on the page
+  if (Array.isArray(biased_sentences) && biased_sentences.length > 0) {
+    highlightSentencesOnPage(biased_sentences);
+  } else {
+    // Clear any previous highlights
+    highlightSentencesOnPage([]);
+  }
 
   // Also update modular on-page overlay boxes (bottom-right).
   try {
@@ -883,18 +755,11 @@ function splitPromptContextAndAnswer(prompt) {
 
 async function analyzeText({ text, question, prompt, context, answer, mode_depth }) {
   return new Promise((resolve, reject) => {
-    const bias_types = biasTypesEl
-      ? Array.from(biasTypesEl.selectedOptions).map((o) => o.value).filter(Boolean)
-      : [];
-    const hierarchy_weighting = hierarchyWeightingEl?.value || "length";
-    const compare_embedders = !!compareEmbeddersEl?.checked;
+    const bias_types = getSelectedBiasTypes();
     chrome.runtime.sendMessage(
       {
         type: "ANALYZE_TEXT",
-        payload: {
-          text, question, prompt, context, answer, mode_depth,
-          bias_types, hierarchy_weighting, compare_embedders,
-        },
+        payload: { text, question, prompt, context, answer, mode_depth, bias_types },
       },
       (response) => {
         if (!response) {
@@ -1047,6 +912,10 @@ chrome.runtime.sendMessage({ type: "GET_LAST_LLM_TURN" }, (response) => {
 
 bindOverlayControls();
 loadOverlayPrefs();
+loadBiasTypeSelection();
+if (biasTypesEl) {
+  biasTypesEl.addEventListener("change", saveBiasTypeSelection);
+}
 
 // Initialize UI visibility
 updateUIVisibility();

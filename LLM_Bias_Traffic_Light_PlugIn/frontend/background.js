@@ -1,8 +1,7 @@
 // Background service worker for handling messages between popup, content script, and backend.
 
 // Backend API base URL (user-selected integration port).
-// Use the backend port we started (8001). Update if you run uvicorn on a different port.
-const API_BASE_URL = "http://127.0.0.1:8001";
+const API_BASE_URL = "http://127.0.0.1:8000";
 const DEFAULT_BIAS_TYPES = ["gender"];
 
 // Keep latest automatic capture for popup redisplay after open/refresh.
@@ -38,11 +37,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         prompt = "",
         context = "",
         answer = "",
+        mode_speed = "fast",
         mode_depth = "normal",
         bias_types = [],
-        hierarchy_weighting = "length",
-        compare_embedders = false,
-        embedder_models = null,
       } = message.payload || {};
 
       const normalizedBiasTypes = Array.isArray(bias_types) && bias_types.length > 0
@@ -61,11 +58,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             prompt,
             context,
             answer,
+            mode_speed,
             mode_depth,
             bias_types: normalizedBiasTypes,
-            hierarchy_weighting,
-            compare_embedders,
-            ...(embedder_models ? { embedder_models } : {}),
           }),
         });
 
@@ -127,4 +122,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
   }
 });
-
