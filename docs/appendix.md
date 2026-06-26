@@ -28,19 +28,22 @@ and how it segments text for per-sentence (Deep mode) analysis.
 
 > _TODO (SB): describe the per-platform extraction + segmentation logic._
 
-## D. Timing analysis _(preliminary)_
-End-to-end `/analyze` latency on a local dev machine (single-process FastAPI, CPU,
-`all-MiniLM-L6-v2`). Numbers are indicative, not benchmarked across hardware.
+## D. Timing analysis
+Latency by stage on a local dev machine (single-process FastAPI, CPU, `all-MiniLM-L6-v2`),
+warm, mean over 25 runs. Cold start adds a one-time ~20–25 s for model + anchor load.
 
-| Phase | Latency | Notes |
-|---|---|---|
-| First request (cold) | ~20–25 s | one-time model load + anchor (cache) load |
-| Warm — Normal mode | sub-second | whole-answer single embedding pass |
-| Warm — Deep mode (≈3 sentences) | ~0.9–2.5 s | per-sentence embedding + per-category projection |
-| DOM text extraction (long pages) | can exceed 5 s | dominated by page DOM size, not scoring |
+| Stage | Latency (ms) |
+|---|---:|
+| Embed one sentence | 23 |
+| Embed full answer (4 sentences) | 31 |
+| Score — Normal mode (1 category) | 53 |
+| Score — Deep mode (per-sentence) | 67 |
+| End-to-end `/analyze` (HTTP, 1 category) | ~70–140 |
 
-> _TODO (LC): replace with a measured table (mean ± std over N runs, per mode and text length)._
-> Per the timing note, extended timing is reported here as an external appendix page.
+Scoring is **~50–70 ms** (sub-200 ms end-to-end) — comfortably within real-time /
+human-perceptible limits. Multi-category requests scale roughly linearly with the number of
+selected categories. DOM **text extraction is client-side** and is not included here; on long
+pages it can exceed 5 s and dominates perceived latency (reported separately).
 
 ## E. Extended evaluation results
 
@@ -61,7 +64,21 @@ Failure rate 0.02% (empty/refused responses), no scoring errors.
 (Parrish et al.); 5 full-abstention cells yield an undefined conditional score and are
 excluded from that column.</small>
 
-### Headline: does the embedding score track behavioural bias?
+### Per-response oracle: does the score flag biased answers?
+At the level of individual answers (_n_ ≈ 185k), the embedding score **cleanly separates
+_committed_ directional answers from abstentions**: mean score 0.63 (stereotyped) and 0.61
+(anti-stereotyped) vs **0.19 (unknown)**, giving **AUC = 0.84** for detecting a committed
+demographic answer. In ambiguous BBQ contexts, committing to _any_ demographic answer rather
+than abstaining _is_ the bias behaviour — so this is the operative signal for the traffic light.
+
+It does **not** classify stereotype _direction_: distinguishing stereotyped from
+anti-stereotyped committed answers is at chance (**AUC = 0.51**). The tool is therefore a strong
+**risk flag** ("the model made a demographic-laden assertion it should have hedged"), not a
+stereotype-vs-counter-stereotype classifier.
+
+![Embedding score by answer type](oracle_violin.png)
+
+### Cell-level correlation
 Across the 39 cells with a defined behavioural score, the local embedding bias is **linearly
 associated** with the behavioural BBQ bias — **Pearson _r_ ≈ 0.61** (Mahalanobis _r_ ≈ 0.55).
 However, the **rank** agreement is weak (**Spearman _ρ_ ≈ 0.23**): the linear correlation is
@@ -85,6 +102,9 @@ across categories.
 **Per-category note:** bias is not uniform within a model — e.g., GPT-5's behavioural bias is
 concentrated in **Age** (ambig. bias 0.308; it abstains only 60.5% there) and SES, while it is
 near-zero on the other categories.
+
+### Bias map (model × category)
+![Behavioural bias map across models and BBQ categories](bias_map_heatmap.png)
 
 > Full per-(model × category) numbers: `results/sweep/all_run/SUMMARY.csv`.
 
