@@ -62,10 +62,20 @@ Failure rate 0.02% (empty/refused responses), no scoring errors.
 excluded from that column.</small>
 
 ### Headline: does the embedding score track behavioural bias?
-Across the 39 cells with a defined behavioural score, the **local embedding bias correlates
-with the behavioural BBQ bias at _r_ ≈ 0.61** (Mahalanobis variant _r_ ≈ 0.55). This is the
-core evidence that the zero-token, embedding-based traffic light is a usable proxy/oracle for
-behavioural social bias — strong and positive, though not a perfect substitute.
+Across the 39 cells with a defined behavioural score, the local embedding bias is **linearly
+associated** with the behavioural BBQ bias — **Pearson _r_ ≈ 0.61** (Mahalanobis _r_ ≈ 0.55).
+However, the **rank** agreement is weak (**Spearman _ρ_ ≈ 0.23**): the linear correlation is
+carried by the genuinely high-bias cells (DeepSeek's committed answers, GPT-5 on Age), while
+among the many low-behavioural-bias cells — where models abstain heavily, compressing the
+behavioural score toward 0 — the embedding score does not discriminate finely.
+
+**Interpretation:** the zero-token embedding traffic light is a reliable **coarse flag** for
+clearly biased outputs (high end), but **not a fine-grained rank oracle**. This is a more
+honest and defensible claim than the headline Pearson value alone, and is consistent with the
+two metrics measuring related-but-distinct things (semantic lean of the emitted text vs.\
+abstention-scaled answer choice).
+
+![Embedding bias vs BBQ behavioural bias across 39 model×category cells](embed_vs_bbq_correlation.png)
 
 **Behavioural reading:** models that abstain more in ambiguous contexts (Gemini 98.5%,
 Claude 94.4%) show the least stereotype lean; DeepSeek commits far more often (abstains
