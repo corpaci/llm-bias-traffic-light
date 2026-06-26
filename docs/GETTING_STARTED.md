@@ -1,3 +1,7 @@
+---
+title: Getting Started
+---
+
 # Getting Started with LLM Bias Traffic Light
 
 Get up and running in 5 minutes.

@@ -1,3 +1,7 @@
+---
+title: Configuration Guide
+---
+
 # Configuration Guide
 
 Detailed reference for every config option.

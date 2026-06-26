@@ -1,3 +1,7 @@
+---
+title: Experiments
+---
+
 # Experiment Map
 
 Reference for running, extending, and interpreting all experiments in this repo.

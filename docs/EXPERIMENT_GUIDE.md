@@ -1,3 +1,7 @@
+---
+title: Experiment Guide
+---
+
 # Experiment Guide
 
 Overview of all analyses you can run, how to use them, and what they measure.

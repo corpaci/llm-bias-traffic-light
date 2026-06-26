@@ -1,3 +1,7 @@
+---
+title: Extending the Tool
+---
+
 # Extending the Framework
 
 Guide for adding custom analyses, metrics, and experiments.
