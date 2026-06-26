@@ -40,7 +40,8 @@ The extension can work in two ways:
 
 Results are shown in the extension popup and, optionally, as floating boxes directly on the page you are viewing.
 
-| ![Extension popup showing low risk](bias_manual_assets/image1.png) | ![Extension popup showing high risk](bias_manual_assets/image2.png) |
+![Extension popup showing low risk](bias_manual_assets/image1.png) 
+![Extension popup showing high risk](bias_manual_assets/image2.png) 
 
 ## 2. Requirements
 
