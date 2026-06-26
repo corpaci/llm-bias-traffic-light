@@ -1,0 +1,23 @@
+config.json
+Backend/.venv/
+Backend/__pycache__/
+__pycache__/
+.venv/
+**/.venv/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.DS_Store
+
+# Cached anchor embeddings (regenerable) -- keep results/ tracked, not cache
+bias_scorer/cache/
+**/bias_scorer/cache/
+
+# Stray nested working copy (not part of the project)
+llm-bias-traffic-light-luiza-wip/
+
+# Project-specific (secrets, caches, heavy/regenerable outputs)
+**/cache/
+results/bbq_geometry/
+results/sweep/
