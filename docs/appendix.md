@@ -79,8 +79,8 @@ entire hub to a single "Show bias info" FAB (floating action button), which rest
 Module visibility and the enabled/hidden state are saved to `chrome.storage.local` under the
 key `biasOverlayPrefs` and restored on page load.
 
-> _TODO: add annotated screenshots of the popup and the on-page overlays._
-
+![Extension active on a supported page](bias_manual_assets/image1.png)
+![Extension active on a supported page](bias_manual_assets/image2.png)
 ---
 
 ## B. Example bias results from live conversations _(draft)_
