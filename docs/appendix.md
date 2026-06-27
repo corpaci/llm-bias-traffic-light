@@ -305,6 +305,28 @@ stereotype-vs-counter-stereotype classifier.
 
 ![Embedding score by answer type](oracle_violin.png)
 
+### Why direction isn't recoverable (ablation)
+We tested whether richer inputs recover stereotype direction. Re-scoring committed answers with
+**composition-matched anchors** under several text compositions, plus an answer-isolating delta
+formulation and polarity-split anchors, leaves direction at chance throughout:
+
+| Method | Direction AUC |
+|---|---:|
+| answer only | 0.49 |
+| context + answer | 0.50 |
+| question + answer | 0.50 |
+| context + question + answer | 0.52 |
+| Δ-arrow: E(C+Q+A) − E(C+Q) | 0.54 |
+| polarity-aware anchors | 0.54 |
+
+The cause is structural: at the **category level the same demographic group occupies both poles**
+across opposite-polarity questions (e.g., *"the old man"* is the stereotyped answer to *"who is
+forgetful?"* but the anti-stereotyped answer to *"who is sharp?"*), so no answer-embedding scheme
+recovers the question-specific direction. Direction is therefore best read from the behavioural
+answer choice; the embedding provides the answer-agnostic, real-time **risk** signal.
+
+![Direction separability by method — all near chance](direction_ablation.png)
+
 ### Cell-level correlation
 
 Across the 39 cells with a defined behavioural score, the local embedding bias is **linearly
