@@ -241,7 +241,9 @@ No. The extension's core features, including automatic detection, the conversati
 ### How is the risk score calculated?
 
 The risk score is determined by analyzing the frequency, intensity, and context of biased language within the processed text.
+
 •	Standard Mode: Uses optimized local models to scan the text for explicit keywords, loaded language, and known partisan framing, generating a baseline risk percentage based on density.
+
 •	Deep Mode: Enables an advanced, multi-layered context evaluation. Instead of just counting keywords, it analyzes sentence structure, subtle logical fallacies, and underlying semantic intent. While Deep mode requires more processing power and time, it drastically reduces false positives and uncovers hidden or implicit biases that Standard mode might miss.
 
 ### Can I select more than one bias type at a time?
