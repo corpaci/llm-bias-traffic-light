@@ -232,15 +232,17 @@ This happens automatically on websites that are not in the supported list ([Sect
 
 ### Does the extension send my data anywhere besides the local backend?
 
-_[Add your explanation here.]_
+No. Your data privacy is a core priority. The extension only communicates with your locally hosted backend server (e.g., localhost) to process text and calculate scores. No text, prompts, or browsing data are ever uploaded to third-party cloud servers or external networks.
 
 ### Can I use Bias Detector on AI platforms that are not in the supported list?
 
-Manual page scanning may still work on the current page's visible text, but automatic detection, the conversation picker, and sentence highlighting are only available on the supported platforms listed in [Section 8](#8-supported-platforms).
+No. The extension's core features, including automatic detection, the conversation picker, sentence highlighting, and the Scan page button are only available on the officially supported platforms listed in Section 8 (ChatGPT, Gemini, Claude, and DeepSeek).
 
 ### How is the risk score calculated?
 
-_[Add your explanation here — describe how the backend computes the bias score and what "Deep" mode changes, if anything.]_
+The risk score is determined by analyzing the frequency, intensity, and context of biased language within the processed text.
+•	Standard Mode: Uses optimized local models to scan the text for explicit keywords, loaded language, and known partisan framing, generating a baseline risk percentage based on density.
+•	Deep Mode: Enables an advanced, multi-layered context evaluation. Instead of just counting keywords, it analyzes sentence structure, subtle logical fallacies, and underlying semantic intent. While Deep mode requires more processing power and time, it drastically reduces false positives and uncovers hidden or implicit biases that Standard mode might miss.
 
 ### Can I select more than one bias type at a time?
 
