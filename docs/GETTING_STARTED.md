@@ -56,9 +56,9 @@ python run_bbq_geometry.py --category Gender_identity --max-examples 100
 4. Saves metrics to `results/bbq_geometry/Gender_identity/` (CSV + plots)
 
 **Output files:**
-- `metrics.csv`, clustering accuracy, logistic regression AUC, Cohen's d, etc.
-- `*.png`, PCA scatter, t-SNE, cosine similarity distributions
-- `run.log`, script output (timestamps, model info, warnings)
+- `metrics.csv`: clustering accuracy, logistic regression AUC, Cohen's d, etc.
+- `*.png`: PCA scatter, t-SNE, cosine similarity distributions
+- `run.log`: script output (timestamps, model info, warnings)
 
 ### Analyze all categories
 

@@ -25,36 +25,36 @@ See metrics in `results/bbq_geometry/Gender_identity/metrics.csv` and plots in `
 ## Repository Layout
 
 ### Core Analysis Tools
-- **`run_bbq_geometry.py`**, Geometry analysis for a single category
-- **`run_all_geometry.py`**, Batch analysis across all 11 categories + summary heatmap
-- **`run_bbq_pca.py`**, PCA visualization
-- **`plot_metric_correlation.py`**, Correlation matrix heatmap
-- **`visualize_results.py`**, Publication figures
+- **`run_bbq_geometry.py`**: Geometry analysis for a single category
+- **`run_all_geometry.py`**: Batch analysis across all 11 categories + summary heatmap
+- **`run_bbq_pca.py`**: PCA visualization
+- **`plot_metric_correlation.py`**: Correlation matrix heatmap
+- **`visualize_results.py`**: Publication figures
 
 ### Datasets & Loaders
-- **`BBQ_Data/`**, 11 bias benchmark categories (Nationality, Religion, Gender_identity, etc.)
-- **`DataLoader/`**, BBQ JSONL loader and utilities
-  - `bbq_loader.py`, Load and filter examples
-  - `example_usage.py`, Usage examples
+- **`BBQ_Data/`**: 11 bias benchmark categories (Nationality, Religion, Gender_identity, etc.)
+- **`DataLoader/`**: BBQ JSONL loader and utilities
+  - `bbq_loader.py`: Load and filter examples
+  - `example_usage.py`: Usage examples
 
 ### Core Library
-- **`bias_scorer/`**, Bias measurement module (can be imported as a package)
-  - `embedder.py`, Sentence-transformer wrapper
-  - `scorer.py`, Bias scoring logic
-  - `anchors.py`, Gender-based anchor embeddings (for scaling)
-  - `run_experiment.py`, CLI for probing live LLMs
-  - `INTEGRATION.md`, API reference for plugin backend
+- **`bias_scorer/`**: Bias measurement module (can be imported as a package)
+  - `embedder.py`: Sentence-transformer wrapper
+  - `scorer.py`: Bias scoring logic
+  - `anchors.py`: Gender-based anchor embeddings (for scaling)
+  - `run_experiment.py`: CLI for probing live LLMs
+  - `INTEGRATION.md`: API reference for plugin backend
 
 ### Plugin (Browser Extension)
-- **`LLM_Bias_Traffic_Light_PlugIn/`**, Browser extension + FastAPI backend
+- **`LLM_Bias_Traffic_Light_PlugIn/`**: Browser extension + FastAPI backend
   - Integrates scoring into Chrome/Firefox workflows
 
 ### Documentation
-- **`docs/GETTING_STARTED.md`**, 5-minute onboarding
-- **`docs/CONFIG_GUIDE.md`**, Config option reference
-- **`docs/EXPERIMENT_GUIDE.md`**, All 7 analysis types + examples
-- **`docs/EXTENDING.md`**, How to add custom metrics
-- **`config.template.json`**, Copy this to `config.json` and fill in API keys
+- **`docs/GETTING_STARTED.md`**: 5-minute onboarding
+- **`docs/CONFIG_GUIDE.md`**: Config option reference
+- **`docs/EXPERIMENT_GUIDE.md`**: All 7 analysis types + examples
+- **`docs/EXTENDING.md`**: How to add custom metrics
+- **`config.template.json`**: Copy this to `config.json` and fill in API keys
 
 ## All Experiments at a Glance
 
@@ -203,8 +203,8 @@ pytest tests/
 ```
 
 Includes:
-- `test_bias_scorer.py`, Embedder and scorer logic
-- `test_integration.py`, End-to-end pipelines
+- `test_bias_scorer.py`: Embedder and scorer logic
+- `test_integration.py`: End-to-end pipelines
 
 ## Troubleshooting
 
