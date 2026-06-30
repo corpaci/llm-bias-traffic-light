@@ -317,8 +317,9 @@ body {
   margin-top: 4px;
   font-size: 12px;
   line-height: 1.4;
-  max-height: 48px;
-  overflow: hidden;
+  max-height: 160px;
+  overflow-y: auto;
+  white-space: pre-wrap;
 }
 
 .qa-details {
@@ -344,7 +345,7 @@ body {
   color: #e5e7eb;
   font-size: 11px;
   padding: 5px 6px;
-  max-height: 56px;
+  max-height: 100px;
   overflow-y: auto;
   white-space: pre-wrap;
 }
