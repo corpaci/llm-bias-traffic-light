@@ -9,6 +9,6 @@ defaults:
     values:
       layout: "default"
 
-# GitHub Pages project site.  Served at https://corpaci.github.io/llm-bias-traffic-light/
-url: "https://corpaci.github.io"
+# GitHub Pages project site.  Served at https://aaam-info.github.io/llm-bias-traffic-light/
+url: "https://aaam-info.github.io"
 baseurl: "/llm-bias-traffic-light"
