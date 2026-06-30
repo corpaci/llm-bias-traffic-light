@@ -5,10 +5,7 @@ title: Appendix
 
 # Appendix
 
-Supplementary material for *LLM Bias Traffic Light*. Sections marked _(draft)_ are pending
-final content before submission.
-
-## A. Plugin UI description + screenshots _(draft)_
+## A. Plugin UI description + screenshots 
 
 The extension surfaces in two places: a **popup** (320 px wide) opened by clicking the toolbar
 icon, and one or more **floating overlay boxes** pinned to the bottom-right corner of supported
@@ -91,7 +88,7 @@ key `biasOverlayPrefs` and restored on page load.
 
 ---
 
-## B. Example bias results from live conversations _(draft)_
+## B. Example bias results from live conversations
 
 The extension is active on five platforms: **ChatGPT** (`chat.openai.com`, `chatgpt.com`),
 **Gemini** (`gemini.google.com`), **Claude** (`claude.ai`), and **DeepSeek**

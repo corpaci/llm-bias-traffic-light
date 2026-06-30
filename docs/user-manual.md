@@ -47,11 +47,12 @@ Results are shown in the extension popup and, optionally, as floating boxes dire
 <figure>
   <img src="bias_manual_assets/image1.png" alt="Extension popup showing low risk">
   <figcaption>Extension popup showing low risk</figcaption>
-</figure> 
+</figure>
+
 <figure>
   <img src="bias_manual_assets/image2.png" alt="Extension popup showing high risk">
   <figcaption>Extension popup showing high risk</figcaption>
-</figure> 
+</figure>
 
 ## 2. Requirements
 
@@ -113,15 +114,15 @@ LLM Bias Traffic Light is currently distributed as an unpacked extension, intend
 
 The popup window is divided into the following areas:
 
-| Area                         | Description                                                                                                                                        |
+| Area | Description |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Header**                   | Shows the extension name and a colored background that reflects the risk level of the most recent scan (green = low, yellow = medium, red = high). |
-| **Scan page button**         | Runs a manual scan of the entire current page.                                                                                                     |
-| **Past conversation picker** | Appears on supported AI sites; lets you pick and scan a specific previous question/answer turn.                                                    |
-| **Status line**              | Shows progress and error messages.                                                                                                                 |
-| **Settings panel**           | Collapsible; contains on-page overlay toggles, scan depth, and bias type selection.                                                                |
-| **LLM response card**        | Displays the most recently detected prompt, context, and answer.                                                                                   |
-| **Result card**              | Shows the risk badge and score, a written explanation, a radar chart of bias-type scores, and a list of flagged sentences.                         |
+| **Header** | Shows the extension name and a colored background that reflects the risk level of the most recent scan (green = low, yellow = medium, red = high). |
+| **Scan page button** | Runs a manual scan of the entire current page. |
+| **Past conversation picker** | Appears on supported AI sites; lets you pick and scan a specific previous question/answer turn. |
+| **Status line** | Shows progress and error messages. |
+| **Settings panel** | Collapsible; contains on-page overlay toggles, scan depth, and bias type selection. |
+| **LLM response card** | Displays the most recently detected prompt, context, and answer. |
+| **Result card** | Shows the risk badge and score, a written explanation, a radar chart of bias-type scores, and a list of flagged sentences. |
 
 ---
 
@@ -218,19 +219,19 @@ Select one or more bias categories to check for, based on the BBQ (Bias Benchmar
 
 Available categories:
 
-| Category                       | Description                                                              |
+| Category | Description |
 | ------------------------------ | ------------------------------------------------------------------------ |
-| **Gender**                     | Stereotypes or assumptions based on gender identity.                     |
-| **Nationality**                | Bias related to a person's country of origin or nationality.             |
-| **Religion**                   | Bias related to religious affiliation or beliefs.                        |
-| **Age**                        | Stereotypes based on a person's age group (e.g., "young" vs. "elderly"). |
-| **Disability**                 | Bias related to physical, sensory, or cognitive disability.              |
-| **Sexual orientation**         | Bias related to sexual orientation.                                      |
-| **Race / ethnicity**           | Bias related to race or ethnic background.                               |
-| **Race × gender**              | Intersectional bias combining race and gender.                           |
-| **Race × SES**                 | Intersectional bias combining race and socioeconomic status.             |
-| **Socioeconomic status (SES)** | Bias related to income, occupation, or social class.                     |
-| **Physical appearance**        | Bias related to physical appearance or body type.                        |
+| **Gender** | Stereotypes or assumptions based on gender identity. |
+| **Nationality** | Bias related to a person's country of origin or nationality. |
+| **Religion** | Bias related to religious affiliation or beliefs. |
+| **Age** | Stereotypes based on a person's age group (e.g., "young" vs. "elderly"). |
+| **Disability** | Bias related to physical, sensory, or cognitive disability. |
+| **Sexual orientation** | Bias related to sexual orientation. |
+| **Race / ethnicity** | Bias related to race or ethnic background. |
+| **Race × gender** | Intersectional bias combining race and gender. |
+| **Race × SES** | Intersectional bias combining race and socioeconomic status. |
+| **Socioeconomic status (SES)** | Bias related to income, occupation, or social class. |
+| **Physical appearance** | Bias related to physical appearance or body type. |
 
 ---
 
@@ -238,12 +239,12 @@ Available categories:
 
 Automatic detection, the conversation picker, and on-page highlighting are currently available on:
 
-| Platform     | URL(s)                               |
+| Platform | URL(s) |
 | ------------ | ------------------------------------ |
-| **ChatGPT**  | `chat.openai.com`, `chatgpt.com`     |
-| **Gemini**   | `gemini.google.com`, `ai.google.com` |
-| **Claude**   | `claude.ai`                          |
-| **DeepSeek** | `chat.deepseek.com`, `deepseek.com`  |
+| **ChatGPT** | `chat.openai.com`, `chatgpt.com` |
+| **Gemini** | `gemini.google.com`, `ai.google.com` |
+| **Claude** | `claude.ai` |
+| **DeepSeek** | `chat.deepseek.com`, `deepseek.com` |
 
 On any other website, the popup will show a warning and only basic functionality (if any) will be available.
 
@@ -288,9 +289,9 @@ No. The extension's core features, including automatic detection, the conversati
 
 The risk score is determined by analyzing the frequency, intensity, and context of biased language within the processed text.
 
-•	Standard Mode: Uses optimized local models to scan the text for explicit keywords, loaded language, and known partisan framing, generating a baseline risk percentage based on density.
+• Standard Mode: Uses optimized local models to scan the text for explicit keywords, loaded language, and known partisan framing, generating a baseline risk percentage based on density.
 
-•	Deep Mode: Enables an advanced, multi-layered context evaluation. Instead of just counting keywords, it analyzes sentence structure, subtle logical fallacies, and underlying semantic intent. While Deep mode requires more processing power and time, it drastically reduces false positives and uncovers hidden or implicit biases that Standard mode might miss.
+• Deep Mode: Enables an advanced, multi-layered context evaluation. Instead of just counting keywords, it analyzes sentence structure, subtle logical fallacies, and underlying semantic intent. While Deep mode requires more processing power and time, it drastically reduces false positives and uncovers hidden or implicit biases that Standard mode might miss.
 
 ### Can I select more than one bias type at a time?
 
@@ -305,13 +306,13 @@ Yes. Select multiple categories in the Settings panel; results and the radar cha
 
 ## Appendix: Glossary
 
-| Term                  | Definition                                                                                                            |
+| Term | Definition |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| **Bias score**        | A number between 0 and 1 (shown as a percentage) representing how likely the analyzed text is to contain social bias. |
-| **Risk level**        | A qualitative label derived from the bias score — Low (<25%), Medium (25–55%), High (>55%).                           |
-| **Flagged sentences** | Individual sentences the backend determined were most likely to contain biased language.                              |
-| **BBQ**               | Bias Benchmark for QA — the category framework used to classify the type of bias being checked for.                   |
-| **Turn**              | A single question/answer exchange detected in an AI chat conversation.                                                |
+| **Bias score** | A number between 0 and 1 (shown as a percentage) representing how likely the analyzed text is to contain social bias. |
+| **Risk level** | A qualitative label derived from the bias score — Low (<25%), Medium (25–55%), High (>55%). |
+| **Flagged sentences** | Individual sentences the backend determined were most likely to contain biased language. |
+| **BBQ** | Bias Benchmark for QA — the category framework used to classify the type of bias being checked for. |
+| **Turn** | A single question/answer exchange detected in an AI chat conversation. |
 
 ---
 

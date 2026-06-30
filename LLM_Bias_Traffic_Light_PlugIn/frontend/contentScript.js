@@ -37,6 +37,9 @@ function isExtensionOrChatUiNoise(text) {
   if (t === "share" || t === "reply..." || t === "copy") return true;
   if (t.includes("retry") && t.length < 24) return true;
   if (t.includes("edit") && t.length < 20) return true;
+  if (t.includes("regenerate") && t.length < 30) return true;
+  if (t.includes("share") && t.length < 20) return true;
+  if (t.includes("copy") && t.length < 20) return true;
   if (/^\d+\.\d{2}\s*·\s*(low|medium|high)$/i.test(t)) return true;
   return false;
 }
@@ -282,12 +285,8 @@ function isDeepseekUiNoise(text) {
   ];
   if (blockedExact.includes(tl)) return true;
 
-  if (tl.includes("new chat") || tl.includes("regenerate") || tl.includes("sign in")) return true;
+  if (tl === "new chat" || tl === "sign in") return true;
   if (tl.includes("one more step before you proceed") || tl.includes("captcha")) return true;
-  if (tl.includes("message deepseek")) return true;
-  if (tl.includes("upload") && tl.length < 40) return true;
-  if (tl.includes("ai-generated") && tl.includes("reference")) return true;
-  if (tl.includes("for reference only")) return true;
   if (tl.length <= 24 && (tl.includes("deepthink") || tl.includes("deep thinking"))) return true;
   return false;
 }
@@ -327,24 +326,6 @@ function passesDeepseekTurnValidation(prompt, answer) {
   if (promptText.length < 3 || answerText.length < 8) return false;
   if (isDeepseekUiNoise(promptText) || isDeepseekUiNoise(answerText)) return false;
   if (isNumericOrUiGarbage(promptText) || isNumericOrUiGarbage(answerText)) return false;
-
-  const tlPrompt = normalizeCaptureText(promptText);
-  const tlAnswer = normalizeCaptureText(answerText);
-  if (tlPrompt.includes("deepthink") && tlPrompt.includes("search")) return false;
-  if (tlPrompt === "deepthink" || tlPrompt === "deepthink search" || tlPrompt === "deep thinking") {
-    return false;
-  }
-  if (tlAnswer.includes("ai-generated") && tlAnswer.includes("reference") && tlAnswer.length < 120) {
-    return false;
-  }
-  if (tlAnswer.includes("for reference only") && tlAnswer.length < 120) return false;
-  if (normalizePairOverlap(promptText, answerText) >= 0.82) return false;
-  if (
-    looksQuestionLikeText(answerText) &&
-    answerText.length <= promptText.length * 1.05
-  ) {
-    return false;
-  }
   return true;
 }
 
@@ -357,6 +338,7 @@ function isDeepseekEmptyChatState() {
     ".ds-chat-message",
     '[class*="UserMessage"]',
     '[class*="AssistantMessage"]',
+    '[class*="message" i]:not([class*="list" i]):not([class*="container" i]):not([class*="area" i]):not([class*="sidebar" i]):not([class*="history" i])',
   ].join(", ");
   const messageEls = Array.from(root.querySelectorAll(messageSelector)).filter(
     (el) => !isInsideDeepseekSidebar(el) && !isBiasExtensionUiElement(el)
@@ -381,19 +363,34 @@ function getDeepseekRoleForMessageEl(el) {
   if (testId.includes("assistant") || testId.includes("model")) return "assistant";
 
   const cls = String(el.className || "");
-  if (/UserMessage|user-message|userMessage/i.test(cls)) return "user";
-  if (/AssistantMessage|assistant-message|assistantMessage/i.test(cls)) return "assistant";
+  if (/UserMessage|user-message|userMessage|ds-message--user|ds-message-user/i.test(cls)) return "user";
+  if (/AssistantMessage|assistant-message|assistantMessage|ds-message--assistant|ds-message-assistant/i.test(cls)) return "assistant";
+
+  // Check if it's markdown or contains markdown (strong indicator of assistant)
+  if (
+    el.matches?.('.ds-markdown, .markdown-body, [class*="markdown-body" i], [class*="markdown" i]') ||
+    el.querySelector?.('.ds-markdown, .markdown-body, [class*="markdown-body" i], [class*="markdown" i]')
+  ) {
+    return "assistant";
+  }
+
+  // If it's a known message container but not assistant, it is user
+  if (
+    cls.includes("ds-message") ||
+    cls.includes("ds-chat-message") ||
+    el.matches?.('.ds-message, .ds-chat-message') ||
+    el.closest?.('.ds-message, .ds-chat-message') ||
+    (cls.toLowerCase().includes("message") && !cls.toLowerCase().includes("list") && !cls.toLowerCase().includes("container"))
+  ) {
+    return "user";
+  }
 
   const wrapper = el.closest?.(
-    '[data-message-author-role], .ds-message, .ds-chat-message, [class*="UserMessage"], [class*="AssistantMessage"]'
+    '[data-message-author-role], .ds-message, .ds-chat-message, [class*="UserMessage"], [class*="AssistantMessage"], [class*="message" i]:not([class*="list" i]):not([class*="container" i]):not([class*="area" i])'
   );
-  if (wrapper && wrapper !== el) return getDeepseekRoleForMessageEl(wrapper);
-
-  if (el.matches?.('.ds-markdown, .markdown-body, [class*="markdown"]')) {
-    const assistantParent = el.closest(
-      '[data-message-author-role="assistant"], [class*="AssistantMessage"], [class*="assistant-message"]'
-    );
-    if (assistantParent) return "assistant";
+  if (wrapper && wrapper !== el) {
+    const parentRole = getDeepseekRoleForMessageEl(wrapper);
+    if (parentRole !== "unknown") return parentRole;
   }
 
   return getRoleForMessageEl(el);
@@ -401,7 +398,7 @@ function getDeepseekRoleForMessageEl(el) {
 
 function getDeepseekTextForMessageEl(el) {
   if (!el || isBiasExtensionUiElement(el)) return "";
-  const markdown = el.querySelector?.('.ds-markdown, .markdown-body, [class*="markdown-body"]');
+  const markdown = el.querySelector?.('.ds-markdown, .markdown-body, [class*="markdown-body" i], [class*="markdown" i]');
   if (markdown && !isBiasExtensionUiElement(markdown)) {
     const text = sanitizeCapturedMessageText((markdown.innerText || "").trim());
     if (text) return text;
@@ -410,38 +407,103 @@ function getDeepseekTextForMessageEl(el) {
 }
 
 function getDeepseekChatMessagesOrdered() {
-  const root = getDeepseekChatRoot();
-  const deepseekSelector = [
-    '[data-message-author-role="user"]',
-    '[data-message-author-role="assistant"]',
-    '[data-message-author-role]',
-    '[data-role="user"]',
-    '[data-role="assistant"]',
-    ".ds-message",
-    ".ds-chat-message",
-    '[class*="UserMessage"]',
-    '[class*="AssistantMessage"]',
-    '[data-testid*="user-message"]',
-    '[data-testid*="assistant-message"]',
-  ].join(", ");
+  // Strategy: use .ds-markdown (stable, non-hashed DeepSeek class) as the authoritative
+  // assistant role classifier. Walk up from a markdown block to find the message list
+  // container, then classify each sibling row by markdown presence.
+  // This exactly mirrors how ChatGPT uses [data-message-author-role] — a stable marker.
 
-  const els = queryTopLevelMessageEls(root, deepseekSelector)
-    .filter((el) => !isBiasExtensionUiElement(el) && !isInsideDeepseekSidebar(el))
-    .sort(compareDomOrder);
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
 
-  const seen = new Set();
+  // Step 1: Find all assistant markdown blocks on the page (not in sidebar, not extension UI)
+  const allMarkdownEls = Array.from(document.querySelectorAll('.ds-markdown, .ds-markdown--block'))
+    .filter(el => {
+      if (isBiasExtensionUiElement(el) || isInsideDeepseekSidebar(el)) return false;
+      const rect = el.getBoundingClientRect();
+      // Accept off-screen blocks too (for previous conversation detection)
+      return rect.width > 0 || el.closest('main, [role="main"]');
+    });
+
+  if (allMarkdownEls.length === 0) {
+    updateDebugOverlay(`<b>[Bias Debug]</b><br>No .ds-markdown found on page`);
+    return [];
+  }
+
+  // Step 2: Walk up from the first markdown block to find the message list container.
+  // The list container is the ancestor whose children are the individual message bubble rows.
+  // We identify it as the deepest ancestor that:
+  //   (a) contains more than one child, AND
+  //   (b) at least one OTHER child also contains a .ds-markdown (another assistant bubble).
+  // This guarantees we land exactly at the message list, not a page-level wrapper.
+  const firstMarkdown = allMarkdownEls[0];
+  let candidate = firstMarkdown.parentElement;
+  let listContainer = null;
+
+  while (candidate && candidate !== document.body && candidate !== document.documentElement) {
+    const parent = candidate.parentElement;
+    if (!parent || parent === document.body || parent === document.documentElement) break;
+
+    const siblings = Array.from(parent.children);
+    // Check if another sibling (not the current candidate ancestor) contains a markdown block
+    const hasOtherMarkdownSibling = siblings.some(s =>
+      s !== candidate && !!s.querySelector('.ds-markdown, .ds-markdown--block')
+    );
+
+    if (hasOtherMarkdownSibling) {
+      // This parent IS the message list container
+      listContainer = parent;
+      break;
+    }
+
+    candidate = parent;
+  }
+
+  // Fallback: if only one assistant turn exists, use the parent of the markdown block's
+  // closest ancestor that has multiple children (the message list wrapper)
+  if (!listContainer) {
+    let node = firstMarkdown.parentElement;
+    for (let depth = 0; depth < 12 && node && node !== document.body; depth++) {
+      if (node.parentElement && node.parentElement.children.length >= 2) {
+        listContainer = node.parentElement;
+        break;
+      }
+      node = node.parentElement;
+    }
+  }
+
+  if (!listContainer) {
+    updateDebugOverlay(`<b>[Bias Debug]</b><br>.ds-markdown found but no list container resolved`);
+    return [];
+  }
+
+  // Step 3: Collect all direct children of the list container as message rows,
+  // sorted in DOM order (top to bottom = chronological order)
+  const messageRows = Array.from(listContainer.children)
+    .filter(row => !isBiasExtensionUiElement(row) && !isInsideDeepseekSidebar(row));
+
   const messages = [];
+  const seenKeys = new Set();
 
-  for (const el of els) {
-    const role = getDeepseekRoleForMessageEl(el);
-    if (role !== "user" && role !== "assistant") continue;
+  for (const row of messageRows) {
+    // Role classification: .ds-markdown present → assistant, absent → user
+    // This is the same principle as ChatGPT's data-message-author-role attribute check.
+    const markdownEl = row.querySelector('.ds-markdown, .ds-markdown--block');
+    const role = markdownEl ? 'assistant' : 'user';
 
-    const text = getDeepseekTextForMessageEl(el);
+    let text;
+    if (markdownEl) {
+      // For assistant: extract text from the markdown block directly
+      text = sanitizeCapturedMessageText((markdownEl.innerText || '').trim());
+    } else {
+      // For user: extract all text from the row, excluding button/icon children
+      text = sanitizeCapturedMessageText(getTextForMessageEl(row));
+    }
+
     if (!text || text.length < 2 || isDeepseekUiNoise(text)) continue;
 
     const key = `${role}:${normalizeCaptureText(text).slice(0, 120)}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
+    if (seenKeys.has(key)) continue;
+    seenKeys.add(key);
     messages.push({ role, text });
   }
 
@@ -664,35 +726,8 @@ function buildTurnsFromMessages(messages) {
 }
 
 function getConversationTurnsPayload() {
-  const isDeepseek = isDeepseekHost();
   const messages = getChatMessagesOrdered();
   let turns = buildTurnsFromMessages(messages);
-
-  if (isDeepseek) {
-    turns = turns.filter((turn) => passesDeepseekTurnValidation(turn.prompt, turn.answer));
-
-    if (turns.length === 0 && !isDeepseekEmptyChatState()) {
-      const latest = extractLatestTurnForDeepseek();
-      if (latest && passesDeepseekTurnValidation(latest.prompt, latest.answer)) {
-        const parsed =
-          typeof splitPromptContextAndAnswer === "function"
-            ? splitPromptContextAndAnswer(latest.prompt || "")
-            : { question: latest.prompt || "", context: "", answerFromPrompt: "" };
-        turns = [
-          {
-            id: 0,
-            prompt: latest.prompt || "",
-            question: parsed.question || latest.prompt || "",
-            context: parsed.context || "",
-            answer: latest.answer || "",
-            label: buildTurnLabel(latest.prompt, parsed.question),
-          },
-        ];
-      }
-    }
-
-    return turns;
-  }
 
   if (turns.length === 0) {
     const latest = extractLatestTurnForCurrentSite();
@@ -1665,307 +1700,18 @@ function extractLatestTurnByChrono() {
 }
 
 function extractLatestTurnForDeepseek() {
-  // DeepSeek UI variants change often, so we combine role-aware extraction
-  // with robust fallbacks scoped to the active chat area (not the sidebar).
-  const root = getDeepseekChatRoot();
-  const normalize = (s) =>
-    (s || "")
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .trim();
-  const overlap = (a, b) => {
-    const aa = normalize(a);
-    const bb = normalize(b);
-    if (!aa || !bb) return 0;
-    if (aa === bb) return 1;
-    const short = aa.length <= bb.length ? aa : bb;
-    const long = aa.length > bb.length ? aa : bb;
-    if (short.length < 20) return 0;
-    if (long.includes(short)) return short.length / long.length;
-    return 0;
-  };
-  const isUiNoise = (text) => isDeepseekUiNoise(text);
-  const classifyRole = (el) => {
-    const hints = [
-      el.getAttribute("data-role"),
-      el.getAttribute("data-testid"),
-      el.getAttribute("data-message-author-role"),
-      el.getAttribute("aria-label"),
-      el.className,
-    ]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    if (
-      hints.includes("assistant") ||
-      hints.includes("model") ||
-      hints.includes("deepseek") ||
-      hints.includes("bot")
-    ) {
-      return "assistant";
+  // Mirror exactly the same pattern as extractLatestTurnForClaude:
+  // use getChatMessagesOrdered (which calls getDeepseekChatMessagesOrdered) +
+  // buildTurnsFromMessages to get all turns, then return the latest one.
+  const messages = getChatMessagesOrdered();
+  const turns = buildTurnsFromMessages(messages);
+  if (turns.length > 0) {
+    const last = turns[turns.length - 1];
+    const prompt = sanitizeCapturedMessageText((last.prompt || '').trim());
+    const answer = sanitizeCapturedMessageText((last.answer || '').trim());
+    if (prompt && answer && hasMeaningfulConversationPair({ prompt, answer })) {
+      return { prompt, answer };
     }
-    if (
-      hints.includes("user") ||
-      hints.includes("human") ||
-      hints.includes("query") ||
-      hints.includes("prompt")
-    ) {
-      return "user";
-    }
-    return null;
-  };
-
-  // Strong path for DeepSeek-like chat layouts:
-  // pair the latest explicit user message with the nearest following assistant message.
-  const explicitUserSelectors = [
-    '[data-role*="user" i]',
-    '[data-message-author-role*="user" i]',
-    '[data-testid*="user" i]',
-    '[class*="UserMessage"]',
-    '[class*="user-message"]',
-  ];
-  const explicitAssistantSelectors = [
-    '[data-role*="assistant" i]',
-    '[data-role*="model" i]',
-    '[data-message-author-role*="assistant" i]',
-    '[data-testid*="assistant" i]',
-    '[data-testid*="model" i]',
-    '[class*="AssistantMessage"]',
-    '[class*="assistant-message"]',
-    ".ds-markdown",
-  ];
-
-  const collectDeepseekNodes = (selector, minLen, maxLen) =>
-    Array.from(root.querySelectorAll(selector))
-      .filter((el) => !isInsideDeepseekSidebar(el) && !isBiasExtensionUiElement(el))
-      .map((el) => getDeepseekTextForMessageEl(el))
-      .filter((t) => t.length >= minLen && t.length <= maxLen)
-      .filter((t) => !isUiNoise(t) && !isNumericOrUiGarbage(t));
-
-  const userNodes = collectDeepseekNodes(explicitUserSelectors.join(", "), 3, 25000);
-  const assistantNodes = collectDeepseekNodes(explicitAssistantSelectors.join(", "), 8, 35000);
-
-  if (userNodes.length > 0 && assistantNodes.length > 0) {
-    const promptCandidate = userNodes[userNodes.length - 1];
-    // DeepSeek can split one answer across multiple assistant nodes.
-    // Build merged candidates from tail windows and keep the richest valid one.
-    const uniqueAssistant = [];
-    for (const t of assistantNodes) {
-      if (!uniqueAssistant.length || normalize(uniqueAssistant[uniqueAssistant.length - 1]) !== normalize(t)) {
-        uniqueAssistant.push(t);
-      }
-    }
-    let bestAnswer = null;
-    let bestScore = -Infinity;
-    for (let end = uniqueAssistant.length - 1; end >= 0; end--) {
-      for (let chunks = 1; chunks <= 8; chunks++) {
-        const start = end - chunks + 1;
-        if (start < 0) break;
-        const merged = uniqueAssistant.slice(start, end + 1).join("\n\n").trim();
-        if (!merged || merged.length < 20) continue;
-        if (overlap(promptCandidate, merged) >= 0.75) continue;
-        // Favor complete responses (longer and multi-paragraph).
-        const paras = merged.split(/\n{2,}/).filter((p) => p.trim().length > 0).length;
-        const score = Math.min(12, Math.floor(merged.length / 180)) + Math.min(5, paras);
-        if (score > bestScore) {
-          bestScore = score;
-          bestAnswer = merged;
-        }
-      }
-    }
-    if (bestAnswer) {
-      return { prompt: promptCandidate, answer: bestAnswer };
-    }
-  }
-
-  const blocks = Array.from(
-    root.querySelectorAll(
-      "[data-role], [data-testid*='message'], [data-testid*='chat'], [data-message-author-role], [role='listitem'], [role='article'], [class*='message'], [class*='chat'], .ds-message, .ds-chat-message, article, section, li, pre"
-    )
-  )
-    .filter((el) => !isInsideDeepseekSidebar(el) && !isBiasExtensionUiElement(el))
-    .map((el) => {
-      const text = getDeepseekTextForMessageEl(el);
-      const role = classifyRole(el) || getDeepseekRoleForMessageEl(el);
-      return { text, role };
-    })
-    .filter((item) => {
-      const t = item.text || "";
-      if (!t) return false;
-      if (t.length < 10 || t.length > 25000) return false;
-      return !isUiNoise(t);
-    });
-
-  const deduped = [];
-  for (const item of blocks) {
-    if (!deduped.length || normalize(deduped[deduped.length - 1].text) !== normalize(item.text)) {
-      deduped.push(item);
-    }
-  }
-
-  // Preferred: latest assistant + nearest previous user.
-  if (deduped.length >= 2) {
-    let assistantIdx = -1;
-    for (let i = deduped.length - 1; i >= 0; i--) {
-      if (deduped[i].role === "assistant") {
-        assistantIdx = i;
-        break;
-      }
-    }
-    if (assistantIdx !== -1) {
-      for (let i = assistantIdx - 1; i >= 0; i--) {
-        if (deduped[i].role !== "user") continue;
-        const prompt = (deduped[i].text || "").trim();
-        const answerParts = [];
-        const isLikelyNextUserTurn = (t) => {
-          const s = (t || "").trim();
-          if (!s) return false;
-          if (s.length > 500) return false;
-          if (!s.includes("?")) return false;
-          const lower = s.toLowerCase();
-          if (lower.startsWith("let") || lower.startsWith("therefore") || lower.startsWith("based on")) {
-            return false;
-          }
-          return true;
-        };
-        for (let j = assistantIdx; j < deduped.length && answerParts.length < 20; j++) {
-          const msg = deduped[j];
-          if (j > assistantIdx && msg.role === "user" && isLikelyNextUserTurn(msg.text)) break;
-          if (isUiNoise(msg.text)) continue;
-          if (msg.role === "user" && isLikelyNextUserTurn(msg.text)) continue;
-          const last = answerParts[answerParts.length - 1];
-          if (!last || normalize(last) !== normalize(msg.text)) answerParts.push(msg.text);
-        }
-        const answer = answerParts.join("\n\n").trim();
-        if (prompt && answer && overlap(prompt, answer) < 0.75) {
-          return { prompt, answer };
-        }
-      }
-    }
-  }
-
-  const texts = deduped.map((x) => x.text).filter(Boolean);
-  if (texts.length < 2) return null;
-
-  const textLooksLikeUserQuestion = (s) => {
-    const trimmed = (s || "").trim();
-    if (!trimmed.includes("?")) return false;
-    return /\?\s*$/.test(trimmed) || trimmed.slice(trimmed.lastIndexOf("?")).length <= 6;
-  };
-
-  // DeepSeek fallback strategy:
-  // use the latest likely user question, then merge subsequent non-question
-  // blocks as one assistant answer to avoid truncation.
-  const looksLikeAssistantStarter = (s) => {
-    const t = normalize(s);
-    if (!t) return false;
-    return (
-      t.startsWith("let") ||
-      t.startsWith("therefore") ||
-      t.startsWith("so ") ||
-      t.startsWith("answer:") ||
-      t.startsWith("based on") ||
-      t.startsWith("here")
-    );
-  };
-  const findLatestQuestionIdx = () => {
-    for (let i = texts.length - 1; i >= 0; i--) {
-      const t = (texts[i] || "").trim();
-      if (t.length < 20) continue;
-      // Prefer explicit question prompts over fragments.
-      if (!t.includes("?")) continue;
-      if (isUiNoise(t)) continue;
-      return i;
-    }
-    return -1;
-  };
-  const questionIdx = findLatestQuestionIdx();
-  if (questionIdx !== -1 && questionIdx + 1 < texts.length) {
-    const prompt = texts[questionIdx];
-    const answerParts = [];
-    for (let i = questionIdx + 1; i < texts.length && answerParts.length < 24; i++) {
-      const t = (texts[i] || "").trim();
-      if (!t) continue;
-      if (isUiNoise(t)) continue;
-      // Stop when we hit next clear user-style question turn.
-      if (i > questionIdx + 1 && t.includes("?") && t.length < 500 && !looksLikeAssistantStarter(t)) {
-        break;
-      }
-      const last = answerParts[answerParts.length - 1];
-      if (!last || normalize(last) !== normalize(t)) {
-        answerParts.push(t);
-      }
-    }
-    const mergedAnswer = answerParts.join("\n\n").trim();
-    if (mergedAnswer && mergedAnswer.length >= 40 && overlap(prompt, mergedAnswer) < 0.75) {
-      return { prompt, answer: mergedAnswer };
-    }
-  }
-
-  const scorePromptCandidate = (prompt, answer) => {
-    const p = (prompt || "").trim();
-    const a = (answer || "").trim();
-    const pLen = p.length;
-    const aLen = a.length;
-    let score = 0;
-    if (p === a || pLen < 10 || aLen < 10) return -Infinity;
-    if (textLooksLikeUserQuestion(p)) score += 5;
-    if (aLen >= pLen * 0.7) score += 2;
-    if (aLen >= 30) score += 1;
-    if (overlap(p, a) >= 0.75) score -= 6;
-    return score;
-  };
-
-  const tailStart = Math.max(0, texts.length - 12);
-  const tail = texts.slice(tailStart);
-  let best = null;
-  let bestScore = -Infinity;
-  for (let localI = tail.length - 1; localI >= 0; localI--) {
-    const promptIdx = tailStart + localI;
-    const answerIdx = promptIdx + 1;
-    if (answerIdx >= texts.length) continue;
-    const prompt = texts[promptIdx];
-    const answer = texts[answerIdx];
-    const s = scorePromptCandidate(prompt, answer);
-    if (s > bestScore) {
-      bestScore = s;
-      best = { prompt, answer };
-    }
-  }
-  if (best) return best;
-
-  // Text-marker fallback from full page text.
-  const pageText = root.innerText || document.body.innerText || "";
-  const patterns = [
-    /You:\s*([\s\S]*?)\n(?:DeepSeek|Assistant):\s*([\s\S]*?)(?=\nYou:|\n(?:DeepSeek|Assistant):|$)/gi,
-    /User:\s*([\s\S]*?)\n(?:DeepSeek|Assistant):\s*([\s\S]*?)(?=\nUser:|\n(?:DeepSeek|Assistant):|$)/gi,
-    /Human:\s*([\s\S]*?)\n(?:DeepSeek|Assistant):\s*([\s\S]*?)(?=\nHuman:|\n(?:DeepSeek|Assistant):|$)/gi,
-  ];
-  let latest = null;
-  for (const re of patterns) {
-    let m;
-    while ((m = re.exec(pageText)) !== null) {
-      const prompt = (m[1] || "").trim();
-      const answer = (m[2] || "").trim();
-      if (!prompt || !answer) continue;
-      if (isUiNoise(prompt) || isUiNoise(answer)) continue;
-      if (overlap(prompt, answer) >= 0.75) continue;
-      latest = { prompt, answer };
-    }
-  }
-  if (latest) return latest;
-
-  // Final fallback: last valid adjacent pair.
-  for (let i = texts.length - 2; i >= 0; i--) {
-    const prompt = texts[i];
-    const answer = texts[i + 1];
-    if (!prompt || !answer) continue;
-    if (prompt.length < 12) continue;
-    if (prompt.length < 120 && !/[?]/.test(prompt)) continue;
-    if (normalize(prompt) === normalize(answer)) continue;
-    if (answer.length < Math.max(20, prompt.length * 0.6)) continue;
-    if (overlap(prompt, answer) >= 0.8) continue;
-    return { prompt, answer };
   }
   return null;
 }
@@ -2002,15 +1748,12 @@ function extractLatestTurnForCurrentSite() {
     if (ordered) return ordered;
     return null;
   }
-  if (hostname.includes("deepseek") || hostname.includes("deepthink")) {
+  if (hostname.includes('deepseek') || hostname.includes('deepthink')) {
+    // Identical pattern to Claude: primary extractor → pairFromOrderedMessages fallback
     const deepseek = extractLatestTurnForDeepseek();
-    if (deepseek && passesDeepseekTurnValidation(deepseek.prompt, deepseek.answer)) {
-      return deepseek;
-    }
+    if (deepseek) return deepseek;
     const ordered = pairFromOrderedMessages();
-    if (ordered && passesDeepseekTurnValidation(ordered.prompt, ordered.answer)) {
-      return ordered;
-    }
+    if (ordered) return ordered;
     return null;
   }
 
@@ -2073,17 +1816,14 @@ function splitPromptContextAndAnswer(prompt) {
 }
 
 function resolveLatestConversationPair() {
-  const isDeepseek = isDeepseekHost();
   const direct = extractLatestTurnForCurrentSite();
   if (direct?.prompt?.trim() && direct?.answer?.trim()) {
-    if (!isDeepseek || passesDeepseekTurnValidation(direct.prompt, direct.answer)) {
-      return direct;
-    }
+    return direct;
   }
 
   const turns = getConversationTurnsPayload();
   if (turns.length === 0) {
-    return isDeepseek ? null : direct;
+    return direct;
   }
 
   const latest = turns[turns.length - 1];
@@ -2093,7 +1833,7 @@ function resolveLatestConversationPair() {
     return { prompt, answer };
   }
 
-  return isDeepseek ? null : direct;
+  return direct;
 }
 
 function sendNewLlmTurn(payload) {
@@ -2277,10 +2017,6 @@ function detectAndSendLatestTurn() {
       return;
     }
 
-    if (isDeepseek && !passesDeepseekTurnValidation(promptText, answerText)) {
-      console.log("Skipping invalid DeepSeek pair");
-      return;
-    }
 
     const tlPrompt = normalize(promptText);
     const tlAnswer = normalize(answerText);
@@ -2328,12 +2064,18 @@ function detectAndSendLatestTurn() {
     // Allow re-sending same turn after a short grace period (for popup reopen / recovery)
     if (key === lastSentTurnKey && now - lastSentTurnTimestamp < graceMs) {
       const newLen = (pair.answer || "").length;
+      if (newLen === lastSentTurnAnswerLen) {
+        console.log("No growth in answer length, skipping");
+        return;
+      }
       const grewEnough = newLen > lastSentTurnAnswerLen + minGrowthChars;
+      const timeElapsedEnough = now - lastSentTurnTimestamp >= 3000;
 
-      // During Gemini streaming, the first 100 chars often stay the same for a while.
-      // If the answer is clearly growing, allow re-send so we capture the full turn.
-      if (!grewEnough) {
-        console.log("Duplicate turn recently seen, skipping");
+      // During Gemini/DeepSeek streaming, the response grows. Throttling prevents flooding.
+      // If the answer is clearly growing or enough time has elapsed since the last update
+      // (meaning streaming either ended or is slow), we allow it.
+      if (!grewEnough && !timeElapsedEnough) {
+        console.log("Duplicate turn recently seen (not grew enough & time since last update < 3s), skipping");
         return;
       }
     }
