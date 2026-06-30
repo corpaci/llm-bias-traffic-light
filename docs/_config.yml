@@ -9,17 +9,6 @@ defaults:
     values:
       layout: "default"
 
-# --- Hosting path -------------------------------------------------------
-# CURRENT: GitHub Pages under the aaam-research org.
-#   Live at: https://aaam-research.github.io/llm-bias-traffic-light/
-url: "https://aaam-research.github.io"
+# GitHub Pages project site.  Served at https://corpaci.github.io/llm-bias-traffic-light/
+url: "https://corpaci.github.io"
 baseurl: "/llm-bias-traffic-light"
-#
-# FUTURE: to move under the main site (aaam.info/aaam-research/llm-bias-traffic-light/),
-# change ONLY the two lines above to:
-#   url: "https://aaam.info"
-#   baseurl: "/aaam-research/llm-bias-traffic-light"
-# then rebuild (jekyll build) and upload _site/ to NFSN under
-# aaam-research/llm-bias-traffic-light/. Page links are relative, so
-# nothing else needs to change.
-# ------------------------------------------------------------------------
