@@ -25,7 +25,7 @@ class BiasResult:
     biased_sentences: list[str]
     explanation: str
     chunks: list[ChunkResult] = field(default_factory=list)
-    # Whitened-cosine (Mahalanobis) metric — 0.0/"neutral" when anchors lack W
+    # Whitened-cosine (Mahalanobis) metric, 0.0/"neutral" when anchors lack W
     mahal_bias_score: float = 0.0
     mahal_corrected:  float = 0.0
     mahal_direction:  str   = "neutral"

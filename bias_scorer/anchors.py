@@ -56,17 +56,17 @@ class AnchorData:
     # (positive pole) and anti-stereotype (negative pole) centroids. The field
     # names are kept as male_anchor/female_anchor for backward compatibility
     # with the experiment scripts that read them directly.
-    male_anchor:   torch.Tensor   # (dim,) unit vector, original space — positive pole
-    female_anchor: torch.Tensor   # (dim,) unit vector, original space — negative pole
+    male_anchor:   torch.Tensor   # (dim,) unit vector, original space, positive pole
+    female_anchor: torch.Tensor   # (dim,) unit vector, original space, negative pole
     baseline_mean: float
     baseline_std:  float
-    # Mahalanobis (whitened cosine) fields — None on old cache
+    # Mahalanobis (whitened cosine) fields, None on old cache
     mahal_W:              torch.Tensor | None = field(default=None)  # (dim, dim) whitening
     mahal_anchor_m:       torch.Tensor | None = field(default=None)  # (dim,) whitened+unit
     mahal_anchor_f:       torch.Tensor | None = field(default=None)  # (dim,) whitened+unit
     mahal_baseline_mean:  float = 0.0
     mahal_baseline_std:   float = 1.0
-    # Axis semantics — drives the direction labels surfaced by the scorer.
+    # Axis semantics, drives the direction labels surfaced by the scorer.
     scheme:    str = "gender"   # "gender" | "stereo"
     pos_label: str = "male"     # label for male_anchor (positive corrected score)
     neg_label: str = "female"   # label for female_anchor (negative corrected score)
@@ -160,8 +160,8 @@ def _collect_pairs(
 def _shrink_alpha(eigenvalues: torch.Tensor, target_cond: float, fallback: float) -> float:
     """Smallest shrinkage α whose regularised covariance has condition number
     ≤ target_cond. Shrinkage keeps eigenvectors and maps each eigenvalue
-    λ → (1-α)λ + α·μ (μ = mean eigenvalue = trΣ/d), so the spectrum — and thus
-    the condition number — can be evaluated without re-decomposing."""
+    λ → (1-α)λ + α·μ (μ = mean eigenvalue = trΣ/d), so the spectrum, and thus
+    the condition number, can be evaluated without re-decomposing."""
     ev = eigenvalues.clamp(min=0.0)
     mu = ev.mean()
     for a in (0.0, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9):
@@ -216,7 +216,7 @@ def _compute_whitening(
     f_w = F.normalize((W @ female_anchor.float()).unsqueeze(0), dim=1).squeeze(0)
 
     # Baseline mean from CQ-only (embedder inherent lean on neutral text).
-    # Std from all BBQ completions (CQ + male + female) — CQ alone clusters
+    # Std from all BBQ completions (CQ + male + female), CQ alone clusters
     # too tightly after whitening because the bias axis aligns with high-variance
     # directions that whitening compresses. Floor at cosine_std to prevent
     # the normalization from saturating on all inputs.
@@ -273,7 +273,7 @@ def compute_anchors(
                 pos_label=saved.get("pos_label", pos_label),
                 neg_label=saved.get("neg_label", neg_label),
             )
-        print("[anchors] Cache outdated (missing Mahalanobis fields) — recomputing.")
+        print("[anchors] Cache outdated (missing Mahalanobis fields), recomputing.")
 
     with open(bbq_file, encoding="utf-8") as f:
         entries = [json.loads(l) for l in f if l.strip()]

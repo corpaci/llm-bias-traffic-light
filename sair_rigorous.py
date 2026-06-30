@@ -118,7 +118,7 @@ def run_grouped_cv(split: str, model_name: str, group_by: str = "eq1"):
         n_splits = min(5, n_groups)
 
         if n_splits < 2:
-            print(f"  {template}: only {n_groups} groups, cannot CV — skipping")
+            print(f"  {template}: only {n_groups} groups, cannot CV, skipping")
             continue
 
         gkf = GroupKFold(n_splits=n_splits)
@@ -229,9 +229,9 @@ def run_cross_template_transfer(split: str, model_name: str):
     print(f"Transfer gap: {within - cross:.4f}")
 
     if within - cross < 0.05:
-        print("[GOOD] Strong transfer — signal is mostly template-invariant")
+        print("[GOOD] Strong transfer, signal is mostly template-invariant")
     else:
-        print("[NOTE] Weak transfer — prompt wrapper affects usable geometry")
+        print("[NOTE] Weak transfer, prompt wrapper affects usable geometry")
 
     return df
 
@@ -301,14 +301,14 @@ def run_delta_analysis(split: str, model_name: str, template_a: str = "natural",
     print(f"\n  Classify from delta alone: {scores.mean():.4f} +/- {scores.std():.4f}")
 
     if scores.mean() > 0.60:
-        print(f"  [NOTE] Delta contains label signal — prompt wrapper interacts with label")
+        print(f"  [NOTE] Delta contains label signal, prompt wrapper interacts with label")
     else:
-        print(f"  [GOOD] Delta carries no label signal — prompt is additive constant")
+        print(f"  [GOOD] Delta carries no label signal, prompt is additive constant")
 
     if mean_delta_std < 0.01:
-        print(f"\n  [GOOD] Deltas are nearly constant — prompt adds a consistent wrapper")
+        print(f"\n  [GOOD] Deltas are nearly constant, prompt adds a consistent wrapper")
     else:
-        print(f"\n  [NOTE] Deltas vary across instances — prompt interacts with content")
+        print(f"\n  [NOTE] Deltas vary across instances, prompt interacts with content")
 
     return {
         "template_a": template_a,
@@ -450,7 +450,7 @@ def run_encoder_comparison(split: str, template: str = "natural"):
         try:
             X, y = load_embeddings(split, template, model_name)
         except FileNotFoundError:
-            print(f"  {model_name}: NOT CACHED — run sair_experiment.py --model {model_name} --steps embed first")
+            print(f"  {model_name}: NOT CACHED, run sair_experiment.py --model {model_name} --steps embed first")
             continue
 
         scores = cross_validate(pipe(), X, y, cv=cv,
@@ -471,9 +471,9 @@ def run_encoder_comparison(split: str, template: str = "natural"):
         accs = [r["acc"] for r in results]
         print(f"\n  Spread across encoders: {max(accs) - min(accs):.4f}")
         if max(accs) - min(accs) < 0.05:
-            print(f"  [GOOD] Pattern is robust — not encoder-specific geometry")
+            print(f"  [GOOD] Pattern is robust, not encoder-specific geometry")
         else:
-            print(f"  [NOTE] Large spread — results may be encoder-specific")
+            print(f"  [NOTE] Large spread, results may be encoder-specific")
 
     return pd.DataFrame(results)
 

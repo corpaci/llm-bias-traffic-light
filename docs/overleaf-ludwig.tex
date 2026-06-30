@@ -30,12 +30,12 @@ Mathematics,\\ Vienna, Austria,
 
 \maketitle              % typeset the header of the contribution
 %
-\begin{abstract} 
+\begin{abstract}
 As Large Language Models (LLMs) reshape how people access information, concerns regarding their tendency to introduce and amplify social biases such as those related to age, nationality, socioeconomic status, amongst others have intensified. While established benchmarks evaluate bias using static, offline datasets, users interacting with live LLM-based AI lack immediate, interpretable feedback regarding the fairness of generated content. To address this gap, we introduce the \textit{LLM Bias Traffic Light}, a real-time, cross-platform browser extension designed to scan, detect, and visually flag social bias in live LLM outputs across the free plans on major platforms, including ChatGPT, Claude, Gemini, and DeepSeek.
 %
 %%
 %
-Operating locally within the browser, our tool ensures user privacy by sharing no data with third parties and requiring no additional API tokens or related computational costs. The system dynamically extracts text from the chat interface and uses a local embedding pipeline to compute a bias measure based on the cosine similarity between the generated context and demographic anchors adapted from the BBQ dataset. 
+Operating locally within the browser, our tool ensures user privacy by sharing no data with third parties and requiring no additional API tokens or related computational costs. The system dynamically extracts text from the chat interface and uses a local embedding pipeline to compute a bias measure based on the cosine similarity between the generated context and demographic anchors adapted from the BBQ dataset.
 %
 %%
 %
@@ -234,9 +234,9 @@ is measured by the signed cosine-distance difference relative to both target anc
 where $E(x)$ denotes the operational text embedding function. Equation~\eqref{eq:raw} is
 thus an online, directed SEAT statistic evaluated per generation rather than over a fixed
 template corpus. To isolate structural manifold anisotropy, the backend concurrently
-computes a whitened-cosine (Mahalanobis) variant---a covariance-normalised form of the same
+computes a whitened-cosine (Mahalanobis) variant, a covariance-normalised form of the same
 statistic that down-weights high-variance embedding directions, in the spirit of
-fairness-metric robustness analyses~\cite{delobelle2022,gallegos2024}---outputting bounded
+fairness-metric robustness analyses~\cite{delobelle2022,gallegos2024}, outputting bounded
 semantic magnitudes scaled on a stable $[0,1]$ interval.
 
 
@@ -256,8 +256,8 @@ By executing anchor-based projection directly in vector space across the configu
 
 The runtime engine supports two distinct analytical depths tailored to capture varied text distributions:
 \begin{itemize}
-  \item Normal mode. Encodes the full text payload or complete conversational string in a single inference pass to minimize pipeline telemetry latency and ensure real-time throughput. 
-  \item Deep mode. Tokenizes the raw text into structurally distinct paragraphs and sentences, evaluating sentence-level sequences independently. 
+  \item Normal mode. Encodes the full text payload or complete conversational string in a single inference pass to minimize pipeline telemetry latency and ensure real-time throughput.
+  \item Deep mode. Tokenizes the raw text into structurally distinct paragraphs and sentences, evaluating sentence-level sequences independently.
 \end{itemize}
 
 In Deep mode, individual sentence scores are aggregated hierarchically up to their parent paragraphs, which then roll up to formulate the global response verdict. The framework processes these combinations dynamically using selectable algebraic weightings:
@@ -271,7 +271,7 @@ where $\Phi$ represents either a character-length-weighted aggregation mechanism
 
 Three core optimizations preserve low client-side resource profiles during active content extraction tasks:
 \begin{itemize}
-  \item Embedding efficiency. The service optimizes deployment workloads via localized execution 
+  \item Embedding efficiency. The service optimizes deployment workloads via localized execution
     of the \texttt{all-MiniLM-L6-v2} encoder using the \texttt{sentence-transformers} library, completing highly responsive vector computation loops without cloud dependency.
   \item Cross-Embedder Validation. For high-robustness operational constraints, the engine supports cross-model verification loops over alternative embedders (defaulting to concurrent tracking with \texttt{all-mpnet-base-v2}). It tracks categorical divergence scores ($\max - \min$) and evaluates structural level agreement flags across multiple models to expose underlying embedding variances.
   \item State caching. Target and non-target demographic centroids $\mathbf{a}_t$ and $\mathbf{a}_{nt}$ are generated once and written directly to a local cache directory at initialization, preventing redundant projection cycles during running browser execution loops.
@@ -280,10 +280,10 @@ Three core optimizations preserve low client-side resource profiles during activ
 \subsection{Operational Cost and Token Independence}
 \label{subsec:cost}
 
-The scoring pipeline operates as a pure encoder-only architecture. Because the verification path isolates the complete context 
-and avoids calls to external generative models, it eliminates token fees, rate-limit failures, and external vendor dependencies. 
-Latency and operational footprints are bounded entirely by local deterministic tensor inference passes rather than variable, 
-network-dependent generation windows. This design yields predictable performance characteristics across high-throughput client 
+The scoring pipeline operates as a pure encoder-only architecture. Because the verification path isolates the complete context
+and avoids calls to external generative models, it eliminates token fees, rate-limit failures, and external vendor dependencies.
+Latency and operational footprints are bounded entirely by local deterministic tensor inference passes rather than variable,
+network-dependent generation windows. This design yields predictable performance characteristics across high-throughput client
 browser loops.
 
 \subsection{Design Rationale}
@@ -291,18 +291,18 @@ browser loops.
 
 The architecture balances empirical tracking accuracy against live system extraction speed across three foundational traits:
 \begin{itemize}
-  \item Determinism. Vector-space proximity calculations ensure fully reproducible results across evaluations, 
+  \item Determinism. Vector-space proximity calculations ensure fully reproducible results across evaluations,
         eliminating the sampling stochasticity found in prompting-based validation strategies.
-  \item Simplicity. Offloading bias evaluation checks from large autoregressive setups to linear geometric matrix 
+  \item Simplicity. Offloading bias evaluation checks from large autoregressive setups to linear geometric matrix
         operations lowers operational deployment barriers and hardware constraints.
-  \item Modularity. Isolating specific site DOM parsing actions from core algebraic calculations allows the independent 
+  \item Modularity. Isolating specific site DOM parsing actions from core algebraic calculations allows the independent
         use of the underlying bias analysis library as a standalone tool suited for automated batch evaluations.
 \end{itemize}
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\textwidth]{TechnicalDesign.png}
-\caption{System architecture layout, highlighting on-page browser DOM extraction and the hierarchical backend evaluation data pipeline.} 
+\caption{System architecture layout, highlighting on-page browser DOM extraction and the hierarchical backend evaluation data pipeline.}
 \label{fig1}
 \end{figure}
 
@@ -408,7 +408,7 @@ Aggregated per model (Table~\ref{tab:eval-models}), the geometric and behavioura
 
 \begin{table}[t]
 \centering
-\caption{Per-model bias profile, mean across all 11 BBQ categories (10\,\% per-category subsample, 10 same-prompt 
+\caption{Per-model bias profile, mean across all 11 BBQ categories (10\,\% per-category subsample, 10 same-prompt
 repeats, $Temperature{=}0.7$). \emph{Abstention}: ambiguous unknown rate.}
 \label{tab:eval-models}
 \begin{tabular}{lcccccc}
@@ -467,9 +467,9 @@ Our evaluation uses four free/preview models (DeepSeek-V3, GPT-5.3, Claude~Sonne
 The LLM Bias Traffic Light proves that localized embedding alignments can successfully shift algorithmic fairness auditing from a post-hoc, server-side paradigm directly into the hands of daily users. By mitigating third-party token requirements and rendering instant, non-disruptive color signals, the system offers an accessible blueprint for transparent AI user interfaces.
 
 \begin{credits}
-\subsubsection{\ackname} 
+\subsubsection{\ackname}
 This work was completed during an AI safety and software reliability research program. The authors express gratitude to academic collaborators and mentors who provided engineering infrastructure and testing support.
-\subsubsection{\discintname} 
+\subsubsection{\discintname}
 
 \end{credits}
 \newpage

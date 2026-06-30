@@ -5,7 +5,7 @@ title: LLM Bias Traffic Light
 # LLM Bias Traffic Light
 
 A real-time, cross-platform **browser extension** that scans, detects, and visually flags
-social bias in live LLM outputs (ChatGPT, Claude, Gemini, DeepSeek) — running **entirely
+social bias in live LLM outputs (ChatGPT, Claude, Gemini, DeepSeek), running **entirely
 locally**, with **zero API tokens** and no data sent to third parties.
 
 It computes an embedding-based bias measure against demographic anchors derived from the
@@ -14,9 +14,9 @@ green / yellow / red "traffic light" verdict.
 
 ## Pages
 
-- 📄 **[Paper (PDF)](paper.html)** — the ICTSS tool paper
-- 📖 **[User Manual](user-manual.html)** — install, run, and use the plugin
-- 📎 **[Appendix](appendix.html)** — supplementary tables, screenshots, and timing analysis
+- 📄 **[Paper (PDF)](paper.html)**, the ICTSS tool paper
+- 📖 **[User Manual](user-manual.html)**, install, run, and use the plugin
+- 📎 **[Appendix](appendix.html)**, supplementary tables, screenshots, and timing analysis
 
 ## Project docs
 

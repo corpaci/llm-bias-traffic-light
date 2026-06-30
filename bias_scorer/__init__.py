@@ -1,5 +1,5 @@
 """
-bias_scorer — gender bias measurement via BBQ anchor embeddings.
+bias_scorer, gender bias measurement via BBQ anchor embeddings.
 
 Quickstart (plugin backend):
     from bias_scorer import analyze

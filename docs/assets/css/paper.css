@@ -1,4 +1,4 @@
-/* paper.css — LNCS / LaTeX-like styling for the docs site.
+/* paper.css, LNCS / LaTeX-like styling for the docs site.
    Times-like system serif; figure captions auto-numbered as "Fig. N.". */
 
 :root{
@@ -58,7 +58,7 @@ figcaption::before{ content:"Fig.\00a0" counter(figure) ".\00a0"; font-weight:70
 /* fallback: any stray lone markdown image gets centered too */
 .paper p > img{ display:block; margin:1.2em auto; max-width:92%; height:auto; }
 
-/* tables — booktabs style (horizontal rules only) */
+/* tables, booktabs style (horizontal rules only) */
 .paper table{ border-collapse:collapse; margin:1.3em auto; font-size:.93rem; }
 .paper thead th{ border-top:1.6px solid #000; border-bottom:1px solid #000; }
 .paper tbody tr:last-child td{ border-bottom:1.6px solid #000; }

@@ -12,7 +12,7 @@ Config lives in `config.json` (copy from `config.template.json`). All fields are
 - **Used by:** `bias_scorer/run_experiment.py` (LLM probing experiments)
 - **Get key:** https://openrouter.ai
 - **Example:** `"sk-or-v1-48d578529f87a02bb838bf6806dfcb98..."`
-- **Leave blank if:** You only run geometry/visualization experiments 
+- **Leave blank if:** You only run geometry/visualization experiments
 
 
 ### anthropic
@@ -61,11 +61,11 @@ Config lives in `config.json` (copy from `config.template.json`). All fields are
 - **Type:** array of template names
 - **Default:** `["answer_only", "cq_answer"]`
 - **Available:**
-  - `answer_only` — just the answer text
-  - `cq_answer` — context + question + answer  (SAIR baseline)
-  - `question_answer` — question + answer, no context
-  - `context_only` — control: same context for all labels
-  - `separate` — concatenation of different embeddings (advanced)
+  - `answer_only`, just the answer text
+  - `cq_answer`, context + question + answer  (SAIR baseline)
+  - `question_answer`, question + answer, no context
+  - `context_only`, control: same context for all labels
+  - `separate`, concatenation of different embeddings (advanced)
 
 ### max_examples
 - **Type:** `null` or integer

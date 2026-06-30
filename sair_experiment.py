@@ -2,7 +2,7 @@
 SAIR Embedding Geometry Experiment
 ===================================
 Tests whether TRUE vs FALSE mathematical implications (from SAIR/Lean-verified data)
-land in different regions of sentence embedding space — without the embedder understanding
+land in different regions of sentence embedding space, without the embedder understanding
 the underlying math.
 
 Uses sentence-transformers (Windows compatible).
@@ -56,7 +56,7 @@ TEMPLATES = {
     "conjoined": lambda e1, e2: f"{e1} and {e2}",
     "eq1_only":  lambda e1, e2: e1,
     "eq2_only":  lambda e1, e2: e2,
-    # "separate" is handled specially — embeds eq1 and eq2 independently
+    # "separate" is handled specially, embeds eq1 and eq2 independently
 }
 
 # ---------------------------------------------------------------------------
@@ -83,7 +83,7 @@ def load_split(split: str, max_examples: int | None = None) -> list[dict]:
 def format_texts(rows: list[dict], template: str) -> list[str]:
     """
     Returns one text string per row. For 'separate', returns two parallel
-    lists (eq1_texts, eq2_texts) instead — handled by the caller.
+    lists (eq1_texts, eq2_texts) instead, handled by the caller.
     """
     if template == "separate":
         raise ValueError("Use format_texts_separate() for the 'separate' template.")
@@ -373,7 +373,7 @@ def run_plot(emb_dict: dict, split: str, template: str, output_dir: Path):
     var = pca.explained_variance_ratio_
     ax.set_xlabel(f"PC1 ({var[0]*100:.1f}% var)")
     ax.set_ylabel(f"PC2 ({var[1]*100:.1f}% var)")
-    ax.set_title(f"PCA — {split} / {template}")
+    ax.set_title(f"PCA, {split} / {template}")
     ax.legend()
     plt.tight_layout()
     path = output_dir / f"{split}_{template}_pca.png"
@@ -396,7 +396,7 @@ def run_plot(emb_dict: dict, split: str, template: str, output_dir: Path):
         ax.scatter(X_tsne[mask, 0], X_tsne[mask, 1],
                    c=colors[cls], label=labels_str[cls],
                    alpha=0.4, s=15, linewidths=0)
-    ax.set_title(f"t-SNE — {split} / {template}")
+    ax.set_title(f"t-SNE, {split} / {template}")
     ax.legend()
     plt.tight_layout()
     path = output_dir / f"{split}_{template}_tsne.png"
@@ -432,7 +432,7 @@ def run_plot(emb_dict: dict, split: str, template: str, output_dir: Path):
     ax.hist(sims_inter,       bins=bins, alpha=0.5, color="#9C27B0", label="Inter (T vs F)")
     ax.set_xlabel("Cosine Similarity")
     ax.set_ylabel("Count")
-    ax.set_title(f"Pairwise Similarity Distributions — {split} / {template}")
+    ax.set_title(f"Pairwise Similarity Distributions, {split} / {template}")
     ax.legend()
     plt.tight_layout()
     path = output_dir / f"{split}_{template}_sim_dist.png"

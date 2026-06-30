@@ -25,10 +25,10 @@ from sklearn.metrics import silhouette_score
 
 def run_category(category, templates, max_examples=None, embedder=None):
     # ... existing code ...
-    
+
     for template in templates:
         # ... compute embeddings, labels ...
-        
+
         result_row = {
             "category": category,
             "template": template,
@@ -37,14 +37,14 @@ def run_category(category, templates, max_examples=None, embedder=None):
             "cohens_d_pc1": cohens_d,
             "centroid_sim_bia_ant": centroid_sim,
         }
-        
+
         # NEW: Add silhouette score
         if len(np.unique(labels)) > 1:
             sil_score = silhouette_score(embeddings, labels)
             result_row["silhouette_score"] = sil_score
-        
+
         results.append(result_row)
-    
+
     return results
 ```
 
@@ -55,7 +55,7 @@ After running:
 python run_all_geometry.py --force
 ```
 
-Check `results/bbq_geometry/SUMMARY.csv` — new column `silhouette_score` will appear.
+Check `results/bbq_geometry/SUMMARY.csv`, new column `silhouette_score` will appear.
 
 ---
 
@@ -65,7 +65,7 @@ Check `results/bbq_geometry/SUMMARY.csv` — new column `silhouette_score` will 
 
 ```python
 """
-analyze_custom_bias.py — Custom bias analysis on external data.
+analyze_custom_bias.py, Custom bias analysis on external data.
 
 Usage:
     python analyze_custom_bias.py --dataset my_data.csv --embedder all-MiniLM-L6-v2
@@ -90,9 +90,9 @@ def analyze_custom_dataset(csv_path, embedder_name="all-MiniLM-L6-v2"):
     """
     df = pd.read_csv(csv_path)
     embedder = Embedder(model_name=embedder_name)
-    
+
     scorer = BiasScorer(embedder)
-    
+
     results = []
     for idx, row in df.iterrows():
         result = scorer.analyze(row["text"])
@@ -103,7 +103,7 @@ def analyze_custom_dataset(csv_path, embedder_name="all-MiniLM-L6-v2"):
             "direction": result.direction,
             "semaphore": result.semaphore,
         })
-    
+
     results_df = pd.DataFrame(results)
     out_path = OUTPUT_DIR / "custom_results.csv"
     results_df.to_csv(out_path, index=False)
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", required=True, help="Path to CSV with 'text' and 'label' columns")
     parser.add_argument("--embedder", default="all-MiniLM-L6-v2")
     args = parser.parse_args()
-    
+
     analyze_custom_dataset(args.dataset, args.embedder)
 ```
 
@@ -163,9 +163,9 @@ df = pd.DataFrame([
 
 Found a useful metric or analysis? Consider:
 
-1. **Add docs** — Explain what it measures and why
-2. **Add tests** — Verify it works on known examples (see `tests/`)
-3. **Submit PR** — Include example usage in commit message
+1. **Add docs**, Explain what it measures and why
+2. **Add tests**, Verify it works on known examples (see `tests/`)
+3. **Submit PR**, Include example usage in commit message
 
 See `.git` history for examples of previous contributions.
 

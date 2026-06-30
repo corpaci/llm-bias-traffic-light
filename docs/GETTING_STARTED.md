@@ -56,9 +56,9 @@ python run_bbq_geometry.py --category Gender_identity --max-examples 100
 4. Saves metrics to `results/bbq_geometry/Gender_identity/` (CSV + plots)
 
 **Output files:**
-- `metrics.csv` — clustering accuracy, logistic regression AUC, Cohen's d, etc.
-- `*.png` — PCA scatter, t-SNE, cosine similarity distributions
-- `run.log` — script output (timestamps, model info, warnings)
+- `metrics.csv`, clustering accuracy, logistic regression AUC, Cohen's d, etc.
+- `*.png`, PCA scatter, t-SNE, cosine similarity distributions
+- `run.log`, script output (timestamps, model info, warnings)
 
 ### Analyze all categories
 
@@ -70,10 +70,10 @@ This batches over all 11 BBQ categories, runs geometry analysis on each, and mer
 
 ## Next Steps
 
-- **See all experiments:** [EXPERIMENT_GUIDE.md](EXPERIMENT_GUIDE.md) — matrix of what's available
-- **Customize config:** [CONFIG_GUIDE.md](CONFIG_GUIDE.md) — deep dive on each setting
-- **Add your own analysis:** [EXTENDING.md](EXTENDING.md) — template for custom metrics
-- **Use the library:** `from bias_scorer import analyze` — single-call API for bias scoring
+- **See all experiments:** [EXPERIMENT_GUIDE.md](EXPERIMENT_GUIDE.md), matrix of what's available
+- **Customize config:** [CONFIG_GUIDE.md](CONFIG_GUIDE.md), deep dive on each setting
+- **Add your own analysis:** [EXTENDING.md](EXTENDING.md), template for custom metrics
+- **Use the library:** `from bias_scorer import analyze`, single-call API for bias scoring
 
 ## Troubleshooting
 

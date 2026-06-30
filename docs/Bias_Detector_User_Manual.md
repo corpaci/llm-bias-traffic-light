@@ -1,4 +1,4 @@
-# LLM Bias Traffic Light — Browser Extension User Manual
+# LLM Bias Traffic Light, Browser Extension User Manual
 
 **Version 1.1.0**
 
@@ -63,14 +63,14 @@ LLM Bias Traffic Light is currently distributed as an unpacked extension, intend
 1. Open your browser and navigate to the extensions page (`chrome://extensions`).
 2. Enable **Developer mode** using the toggle, usually located in the top-right corner.
 3. Click **Load unpacked**.
-4. Select the folder that contains the extension's files (the `-frontend-` folder — the one with `manifest.json`).
+4. Select the folder that contains the extension's files (the `-frontend-` folder, the one with `manifest.json`).
 5. The Bias Detector icon should now appear in your extensions list and toolbar.
 
-![Installation step — enabling Developer mode](bias_manual_assets/image3.png)
+![Installation step, enabling Developer mode](bias_manual_assets/image3.png)
 
-![Installation step — Load unpacked button](bias_manual_assets/image4.png)
+![Installation step, Load unpacked button](bias_manual_assets/image4.png)
 
-![Installation step — selecting the extension folder](bias_manual_assets/image5.png)
+![Installation step, selecting the extension folder](bias_manual_assets/image5.png)
 
 ---
 
@@ -109,7 +109,7 @@ The popup window is divided into the following areas:
 
 On supported AI chat sites, the extension watches the page for new assistant messages. When a new reply appears, it is automatically sent to the backend for analysis, and the result is pushed both to the popup (next time it is opened) and to the on-page overlay (if enabled).
 
-- You do not need to click anything for this to happen — simply chat normally with the AI.
+- You do not need to click anything for this to happen, simply chat normally with the AI.
 - Open the popup at any time to see the most recent automatic result; it is restored even if you closed and reopened the popup.
 
 ![Automatic scan result displayed in the popup](bias_manual_assets/image8.png)
@@ -120,7 +120,7 @@ On supported AI chat sites, the extension watches the page for new assistant mes
 
 Click **Scan page** to collect all readable text from the active tab and send it to the backend for analysis. This is useful for pages that are not automatically monitored, or to re-analyze the page on demand.
 
-![Manual scan — Scan page button](bias_manual_assets/image9.png)
+![Manual scan, Scan page button](bias_manual_assets/image9.png)
 
 ---
 
@@ -128,9 +128,9 @@ Click **Scan page** to collect all readable text from the active tab and send it
 
 On supported AI chat sites, the **Past conversation** dropdown lists the question/answer turns detected on the page. Select a turn to preview its prompt, context, and answer in the LLM response card, then click **Scan conversation** to analyze that specific exchange.
 
-![Past conversation dropdown — selecting a turn](bias_manual_assets/image10.png)
+![Past conversation dropdown, selecting a turn](bias_manual_assets/image10.png)
 
-![Past conversation dropdown — scan conversation button](bias_manual_assets/image11.png)
+![Past conversation dropdown, scan conversation button](bias_manual_assets/image11.png)
 
 ---
 
@@ -227,7 +227,7 @@ Confirm that the backend API server is running and reachable at `http://127.0.0.
 
 This happens automatically on websites that are not in the supported list ([Section 8](#8-supported-platforms)). Switch to a supported AI chat site and reopen the popup.
 
-![Troubleshooting — extension warning on unsupported site](bias_manual_assets/image13.png)
+![Troubleshooting, extension warning on unsupported site](bias_manual_assets/image13.png)
 
 ---
 
@@ -243,13 +243,13 @@ Manual page scanning may still work on the current page's visible text, but auto
 
 ### How is the risk score calculated?
 
-_[Add your explanation here — describe how the backend computes the bias score and what "Deep" mode changes, if anything.]_
+_[Add your explanation here, describe how the backend computes the bias score and what "Deep" mode changes, if anything.]_
 
 ### Can I select more than one bias type at a time?
 
 Yes. Select multiple categories in the Settings panel; results and the radar chart will reflect all selected categories.
 
-![FAQ — result card with radar chart](bias_manual_assets/image14.png)
+![FAQ, result card with radar chart](bias_manual_assets/image14.png)
 
 ---
 
@@ -258,11 +258,11 @@ Yes. Select multiple categories in the Settings panel; results and the radar cha
 | Term                  | Definition                                                                                                            |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | **Bias score**        | A number between 0 and 1 (shown as a percentage) representing how likely the analyzed text is to contain social bias. |
-| **Risk level**        | A qualitative label derived from the bias score — Low (<25%), Medium (25–55%), High (>55%).                           |
+| **Risk level**        | A qualitative label derived from the bias score, Low (<25%), Medium (25–55%), High (>55%).                           |
 | **Flagged sentences** | Individual sentences the backend determined were most likely to contain biased language.                              |
-| **BBQ**               | Bias Benchmark for QA — the category framework used to classify the type of bias being checked for.                   |
+| **BBQ**               | Bias Benchmark for QA, the category framework used to classify the type of bias being checked for.                   |
 | **Turn**              | A single question/answer exchange detected in an AI chat conversation.                                                |
 
 ---
 
-_LLM Bias Traffic Light — User Manual v1.1.0_
+_LLM Bias Traffic Light, User Manual v1.1.0_

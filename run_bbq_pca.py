@@ -1,5 +1,5 @@
 """
-BBQ embedding space PCA — visualising bias regions and anchor directions.
+BBQ embedding space PCA, visualising bias regions and anchor directions.
 
 Implements the Apr 17 idea: project BBQ embeddings into 2D and show whether
 biased/anti_biased regions are spatially separable, and where the anchor
@@ -126,7 +126,7 @@ def _plot_bias_axis_1d(
     ax.axvline(0, color="black", linewidth=0.8, linestyle="--")
     ax.set_xlabel("bias_corrected  (+ = male lean, − = female lean)")
     ax.set_ylabel("Density")
-    ax.set_title(f"{category} — bias axis projection by label", fontsize=9)
+    ax.set_title(f"{category}, bias axis projection by label", fontsize=9)
     ax.legend(frameon=False, fontsize=8)
 
     # Right: violin / strip
@@ -145,7 +145,7 @@ def _plot_bias_axis_1d(
     ax2.set_xticklabels([l.replace("_", "\n") for l in unique_labs], fontsize=8)
     ax2.axhline(0, color="black", linewidth=0.8, linestyle="--")
     ax2.set_ylabel("bias_corrected")
-    ax2.set_title(f"{category} — bias score violin by label", fontsize=9)
+    ax2.set_title(f"{category}, bias score violin by label", fontsize=9)
 
     fig.tight_layout()
     stem = f"{category}_bias_axis_1d{suffix}"
@@ -193,7 +193,7 @@ def run_pca_plot(
         if binary:
             rows = [r for r in rows if r["label"] != "unknown"]
         if not rows:
-            print("  No rows — check category name and that it has male/female answer labels.")
+            print("  No rows, check category name and that it has male/female answer labels.")
             return
         n_entries = len(rows) // (2 if binary else 3)
         print(f"  {n_entries} entries → {len(rows)} rows")
@@ -216,11 +216,11 @@ def run_pca_plot(
         if binary:
             rows = [r for r in rows if r["label"] != "unknown"]
         if not rows:
-            print("  No rows — check category name.")
+            print("  No rows, check category name.")
             return
         n_entries = len(rows) // (2 if binary else 3)
         print(f"  {n_entries} entries → {len(rows)} rows")
-        # Residual embedding — same approach as by-role mode.
+        # Residual embedding, same approach as by-role mode.
         # Subtracts shared context so the answer's contribution is visible.
         cq_texts  = [r["cq"]                    for r in rows]
         ans_texts = [r["cq"] + " " + r["answer"] for r in rows]
@@ -263,7 +263,7 @@ def run_pca_plot(
             scale = np.abs(coords).max() * 0.45
 
             # When the PCA is on residuals (E(cq+ans) - E(cq)), projecting
-            # raw anchors is wrong — they live in full embedding space.
+            # raw anchors is wrong, they live in full embedding space.
             # Project the DIFFERENCE (male - female) instead: it cancels the
             # shared context component, leaving only the gender direction,
             # which IS in the same space as the residuals.
@@ -327,7 +327,7 @@ def run_pca_plot(
     title_tag = "biased vs anti-biased" if binary else "all labels"
     ax.set_xlabel(f"PC1 ({ev[0]*100:.1f}% var.)")
     ax.set_ylabel(f"PC2 ({ev[1]*100:.1f}% var.)")
-    ax.set_title(f"{category} — PCA ({title_tag}, cq + normalised answer)", fontsize=9)
+    ax.set_title(f"{category}, PCA ({title_tag}, cq + normalised answer)", fontsize=9)
     ax.axhline(0, color="lightgray", linewidth=0.5, zorder=1)
     ax.axvline(0, color="lightgray", linewidth=0.5, zorder=1)
     ax.legend(frameon=False, fontsize=7, markerscale=1.5, loc="best")
@@ -378,7 +378,7 @@ def _plot_pc1_histogram(
         )
     ax.set_xlabel(f"PC1 ({ev0*100:.1f}% var.)")
     ax.set_ylabel("Density")
-    ax.set_title(f"{category} — PC1 distribution by label", fontsize=9)
+    ax.set_title(f"{category}, PC1 distribution by label", fontsize=9)
     ax.legend(frameon=False, fontsize=8)
     fig.tight_layout()
     stem = f"{category}_pc1_histogram{suffix}"
@@ -394,7 +394,7 @@ def _plot_tsne(
     category: str,
     title_tag: str,
     show_anchor: bool,
-    pca,           # fitted PCA object — used to project anchors into same orientation
+    pca,           # fitted PCA object, used to project anchors into same orientation
     save_dir: Path,
     suffix: str = "",
 ):
@@ -429,7 +429,7 @@ def _plot_tsne(
 
     ax.set_xlabel("t-SNE 1")
     ax.set_ylabel("t-SNE 2")
-    ax.set_title(f"{category} — t-SNE ({title_tag}, cq + normalised answer)", fontsize=9)
+    ax.set_title(f"{category}, t-SNE ({title_tag}, cq + normalised answer)", fontsize=9)
     ax.legend(frameon=False, fontsize=7, markerscale=1.5, loc="best")
     fig.tight_layout()
 
@@ -450,7 +450,7 @@ def parse_args():
     p.add_argument("--max-examples", type=int, default=None)
     p.add_argument("--model-name", default="all-MiniLM-L6-v2")
     p.add_argument("--binary", action="store_true",
-                   help="Only biased vs anti_biased — drop unknown rows")
+                   help="Only biased vs anti_biased, drop unknown rows")
     p.add_argument("--by-role", action="store_true",
                    help="Colour by gender role (male/female/unknown) instead of "
                         "biased/anti_biased. Produces visible PCA separation because "

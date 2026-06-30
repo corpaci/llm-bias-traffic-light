@@ -1,5 +1,5 @@
 """
-BBQ Bias Measurement — local runner (sentence-transformers embedder).
+BBQ Bias Measurement, local runner (sentence-transformers embedder).
 """
 
 import json
@@ -200,7 +200,7 @@ def plot_results(df, save_dir=OUTPUT_DIR):
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     fig.suptitle("Sentence-BERT Embedding Bias on BBQ Gender Identity", fontsize=14, fontweight="bold")
 
-    # 1. Bias score histogram — ambiguous only
+    # 1. Bias score histogram, ambiguous only
     ax = axes[0, 0]
     ambig = df[df["is_ambiguous"]]
     if len(ambig) > 0:
@@ -218,7 +218,7 @@ def plot_results(df, save_dir=OUTPUT_DIR):
         ax.set_title("Bias Score Distribution (Ambiguous)")
         ax.legend()
 
-    # 2. Predicted answer distribution — ambiguous only
+    # 2. Predicted answer distribution, ambiguous only
     ax = axes[0, 1]
     if len(ambig) > 0:
         pred_counts = ambig["predicted"].value_counts()

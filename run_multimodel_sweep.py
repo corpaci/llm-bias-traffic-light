@@ -1,5 +1,5 @@
 """
-run_multimodel_sweep.py — Multi-model BBQ bias sweep via OpenRouter.
+run_multimodel_sweep.py, Multi-model BBQ bias sweep via OpenRouter.
 
 Probes several LLMs on a stratified subsample of BBQ (all 11 categories),
 querying each prompt multiple times (temperature sampling) to estimate answer
@@ -12,7 +12,7 @@ variance, then scores every response with the unified `bias_scorer`:
                        aggregates the standard BBQ bias score per (model, cat).
 
 Scale (defaults): 10% per class (~5.8k prompts) x 4 models x 10 repeats ~= 232k
-OpenRouter calls. That is real money — use --smoke first.
+OpenRouter calls. That is real money, use --smoke first.
 
 Usage:
     # Tiny real-API smoke test (a few calls; needs openrouter key in config.json)
@@ -57,7 +57,7 @@ BBQ_DIR = PROJECT_ROOT / "BBQ_Data"
 DEFAULT_OUTPUT = PROJECT_ROOT / "results" / "sweep"
 
 # ---------------------------------------------------------------------------
-# CONFIG — edit model slugs here. These OpenRouter slugs are BEST GUESSES for
+# CONFIG, edit model slugs here. These OpenRouter slugs are BEST GUESSES for
 # the requested versions; confirm them on https://openrouter.ai/models before a
 # full run (a wrong slug fails fast with a 400 from OpenRouter).
 # ---------------------------------------------------------------------------
@@ -470,7 +470,7 @@ def parse_args():
     p.add_argument("--temperature", type=float, default=0.7)
     p.add_argument("--max-tokens", type=int, default=512,
                    help="Completion token budget. Keep >=256 for reasoning models "
-                        "(GPT-5.x) — a tight budget truncates to empty content.")
+                        "(GPT-5.x), a tight budget truncates to empty content.")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--request-delay", type=float, default=0.0,
                    help="Seconds between calls in sequential mode (ignored when --concurrency > 1).")
@@ -602,7 +602,7 @@ def main():
                 summary_rows.append(row)
     except FatalAPIError as e:
         aborted_error = str(e)
-        print(f"\n[abort] Fatal API error — stopping early (key/credit limit or auth):\n  {e}")
+        print(f"\n[abort] Fatal API error, stopping early (key/credit limit or auth):\n  {e}")
         print("Completed cells are saved. Fix the key/credits, then re-run with the SAME "
               f"--run-name {run_name} to resume (finished cells are skipped).")
 

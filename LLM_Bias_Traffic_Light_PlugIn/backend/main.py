@@ -167,7 +167,7 @@ def _build_bias_type_directions(directions_by_category: Dict[str, str], bias_typ
 
 
 # ---------------------------------------------------------------------------
-# Sentence-transformers path — delegates entirely to bias_scorer.analyze().
+# Sentence-transformers path, delegates entirely to bias_scorer.analyze().
 # ---------------------------------------------------------------------------
 
 def _score_requested_categories(

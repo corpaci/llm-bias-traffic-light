@@ -51,15 +51,15 @@ def section(title: str):
 
 
 def assert_eq(a, b, msg=""):
-    assert a == b, f"{msg} — expected {b!r}, got {a!r}"
+    assert a == b, f"{msg}, expected {b!r}, got {a!r}"
 
 
 def assert_in(val, lo, hi, msg=""):
-    assert lo <= val <= hi, f"{msg} — {val} not in [{lo}, {hi}]"
+    assert lo <= val <= hi, f"{msg}, {val} not in [{lo}, {hi}]"
 
 
 def assert_type(val, t, msg=""):
-    assert isinstance(val, t), f"{msg} — expected {t.__name__}, got {type(val).__name__}"
+    assert isinstance(val, t), f"{msg}, expected {t.__name__}, got {type(val).__name__}"
 
 
 def assert_true(val, msg="must be True"):
@@ -79,9 +79,9 @@ try:
 
     _emb = Embedder()
     _anchors = compute_anchors(_emb)
-    print("  OK — embedder and anchors loaded")
+    print("  OK, embedder and anchors loaded")
 except Exception as e:
-    print(f"  FATAL — could not load fixtures: {e}")
+    print(f"  FATAL, could not load fixtures: {e}")
     sys.exit(1)
 
 if VERBOSE:
@@ -130,10 +130,10 @@ _check("baseline_std is positive and small", lambda:
     assert_in(_anchors.baseline_std, 1e-4, 0.1, "baseline_std"))
 
 # ---------------------------------------------------------------------------
-# 3. score_text — normal mode
+# 3. score_text, normal mode
 # ---------------------------------------------------------------------------
 
-section("3. score_text — normal mode")
+section("3. score_text, normal mode")
 
 _r_neutral  = score_text("The weather is nice today.", _emb, _anchors)
 _r_male     = score_text("He is a brilliant engineer and a natural leader.", _emb, _anchors)
@@ -206,10 +206,10 @@ _check("_normalize at 0 → 0.0", lambda:
     assert_in(_normalize(0.0, _anchors.baseline_std), 0.0, 1e-6))
 
 # ---------------------------------------------------------------------------
-# 5. score_text — deep mode
+# 5. score_text, deep mode
 # ---------------------------------------------------------------------------
 
-section("5. score_text — deep mode")
+section("5. score_text, deep mode")
 
 _DEEP_TEXT = (
     "She worked as a nurse for twenty years. "
@@ -247,10 +247,10 @@ _check("deep mode: overall bias_score in [0, 1]", lambda:
     assert_in(_r_deep.bias_score, 0.0, 1.0))
 
 # ---------------------------------------------------------------------------
-# 6. analyze() — public one-call API
+# 6. analyze(), public one-call API
 # ---------------------------------------------------------------------------
 
-section("6. analyze() — public entry point")
+section("6. analyze(), public entry point")
 
 from bias_scorer import analyze
 
@@ -358,7 +358,7 @@ def _test_add_bbq_labels_trailing_punct():
     }])
     df = add_bbq_labels(df)
     assert df["bbq_label"].iloc[0] == "biased", \
-        f"trailing period not stripped — got {df['bbq_label'].iloc[0]}"
+        f"trailing period not stripped, got {df['bbq_label'].iloc[0]}"
 
 def _test_add_bbq_labels_missing_cols():
     # Old CSV without stereo columns → graceful degradation to 'unknown'
@@ -389,7 +389,7 @@ _check("bbq_bias_score: all-unknown returns None", _test_bbq_bias_score_all_unkn
 # 8. Plugin API contract
 # ---------------------------------------------------------------------------
 
-section("8. Plugin API contract — AnalyzeResponse compatibility")
+section("8. Plugin API contract, AnalyzeResponse compatibility")
 
 def _check_bias_score_type():
     r = analyze("Some answer text.")

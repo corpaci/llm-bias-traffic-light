@@ -85,7 +85,7 @@ def test_health():
     check("status ok", resp.get("status") == "ok", str(resp))
     check("scorer field present", "scorer" in resp, str(resp))
     check("scorer available", resp.get("scorer") == "available",
-          f"scorer={resp.get('scorer')} — install sentence-transformers + torch in venv")
+          f"scorer={resp.get('scorer')}, install sentence-transformers + torch in venv")
 
 
 def test_no_text():
@@ -108,7 +108,7 @@ def test_neutral_text():
     check("bias_score is float", isinstance(score, float), str(score))
     check("bias_score in [0,1]", 0.0 <= score <= 1.0, str(score))
     check("neutral scores low (<0.25)", score < 0.25,
-          f"score={score:.4f} — a neutral sentence should be low")
+          f"score={score:.4f}, a neutral sentence should be low")
     check("biased_sentences empty in normal mode", resp["biased_sentences"] == [])
     check("explanation present", bool(resp.get("explanation")))
 
@@ -139,7 +139,7 @@ def test_biased_text_text_field():
     })
     score = resp["bias_score"]
     check("text field used as fallback", score > 0.0,
-          f"score={score:.4f} — text field should be scored when answer is absent")
+          f"score={score:.4f}, text field should be scored when answer is absent")
 
 
 def test_answer_takes_precedence():
@@ -309,7 +309,7 @@ def main():
     if "--compare" in sys.argv:
         test_embedder_comparison()
     else:
-        print("\n(skipping cross-embedder comparison; pass --compare to run it — downloads a 2nd model)")
+        print("\n(skipping cross-embedder comparison; pass --compare to run it, downloads a 2nd model)")
 
     total = len(_results)
     passed = sum(1 for r in _results if r.ok)

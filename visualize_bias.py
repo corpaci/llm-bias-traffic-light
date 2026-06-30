@@ -2,9 +2,9 @@
 Publication-ready bias experiment visualizations.
 
 Produces three separate figures saved to results/figures/:
-  fig1_semaphore_distribution — stacked bar: low / medium / high per model
-  fig2_score_distribution     — box plot: normalised bias score per model
-  fig3_answer_type            — stacked bar: gendered vs neutral answers per model
+  fig1_semaphore_distribution, stacked bar: low / medium / high per model
+  fig2_score_distribution, box plot: normalised bias score per model
+  fig3_answer_type, stacked bar: gendered vs neutral answers per model
 
 Usage:
     python visualize_bias.py
@@ -85,7 +85,7 @@ def _save(fig, stem):
 
 
 # ---------------------------------------------------------------------------
-# Fig 1 — Semaphore distribution
+# Fig 1, Semaphore distribution
 # ---------------------------------------------------------------------------
 
 def fig1_semaphore():
@@ -114,7 +114,7 @@ def fig1_semaphore():
 
 
 # ---------------------------------------------------------------------------
-# Fig 2 — Bias score distribution (box plot)
+# Fig 2, Bias score distribution (box plot)
 # ---------------------------------------------------------------------------
 
 def fig2_scores():
@@ -147,7 +147,7 @@ def fig2_scores():
 
 
 # ---------------------------------------------------------------------------
-# Fig 3 — Answer type: gendered vs neutral
+# Fig 3, Answer type: gendered vs neutral
 # ---------------------------------------------------------------------------
 
 _GENDERED_PREFIXES = (

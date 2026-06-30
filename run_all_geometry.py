@@ -73,7 +73,7 @@ def make_paper_table(df: pd.DataFrame, out_dir: Path):
                 ax.text(min(v + 0.01, 1.0), bar.get_y() + bar.get_height() / 2,
                         f"{v:.2f}", va="center", fontsize=7)
 
-        fig.suptitle(f"BBQ geometry — template: {tmpl}", fontsize=10)
+        fig.suptitle(f"BBQ geometry, template: {tmpl}", fontsize=10)
         fig.tight_layout()
         for ext in ("pdf", "png"):
             fig.savefig(out_dir / f"geometry_all_{tmpl}.{ext}", bbox_inches="tight")
@@ -92,7 +92,7 @@ def main():
     for cat in args.categories:
         bbq_file = BBQ_DIR / f"{cat}.jsonl"
         if not bbq_file.exists():
-            print(f"  [skip] {cat} — file not found")
+            print(f"  [skip] {cat}, file not found")
             continue
 
         # Raw answers

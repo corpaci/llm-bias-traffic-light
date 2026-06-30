@@ -2,9 +2,9 @@
 Correlation between embedding bias metric and BBQ behavioural bias score.
 
 Reads all *_bias.csv files produced by run_experiment.py and plots:
-  Fig A — per-question violin: embedding score distribution by bbq_label
-  Fig B — per-model scatter: mean embedding score vs BBQ behavioural score
-  Fig C — ROC-style: does higher embedding score predict biased answer choice?
+  Fig A, per-question violin: embedding score distribution by bbq_label
+  Fig B, per-model scatter: mean embedding score vs BBQ behavioural score
+  Fig C, ROC-style: does higher embedding score predict biased answer choice?
 
 Requires CSVs that have BOTH bias_score_norm AND bbq_label columns
 (run_experiment.py produces these when --llm is used after the May 2026 update).
@@ -64,10 +64,10 @@ def load_results(results_dirs: list[Path]) -> dict[str, pd.DataFrame]:
         for csv in sorted(d.glob("*_bias.csv")):
             df = pd.read_csv(csv)
             if "bbq_label" not in df.columns:
-                print(f"  [skip] {csv.name} — no bbq_label column (re-run experiment)")
+                print(f"  [skip] {csv.name}, no bbq_label column (re-run experiment)")
                 continue
             if "bias_score_norm" not in df.columns:
-                print(f"  [skip] {csv.name} — no bias_score_norm column")
+                print(f"  [skip] {csv.name}, no bias_score_norm column")
                 continue
             label = _model_label(csv)
             dfs[label] = df
@@ -76,7 +76,7 @@ def load_results(results_dirs: list[Path]) -> dict[str, pd.DataFrame]:
 
 
 # ---------------------------------------------------------------------------
-# Fig A — violin per bbq_label
+# Fig A, violin per bbq_label
 # ---------------------------------------------------------------------------
 
 def fig_violin(dfs: dict[str, pd.DataFrame], out_dir: Path):
@@ -118,7 +118,7 @@ def fig_violin(dfs: dict[str, pd.DataFrame], out_dir: Path):
 
 
 # ---------------------------------------------------------------------------
-# Fig B — model-level scatter: mean embedding score vs BBQ behavioural score
+# Fig B, model-level scatter: mean embedding score vs BBQ behavioural score
 # ---------------------------------------------------------------------------
 
 def _bbq_behavioral(df: pd.DataFrame) -> float | None:
@@ -137,7 +137,7 @@ def fig_model_scatter(dfs: dict[str, pd.DataFrame], out_dir: Path):
             points.append((model, behavioral, embedding))
 
     if not points:
-        print("  [skip] model scatter — no models with bbq_label data")
+        print("  [skip] model scatter, no models with bbq_label data")
         return
 
     fig, ax = plt.subplots(figsize=(4.5, 3.5))
@@ -165,7 +165,7 @@ def fig_model_scatter(dfs: dict[str, pd.DataFrame], out_dir: Path):
 
 
 # ---------------------------------------------------------------------------
-# Fig C — ROC-style: does embedding score predict biased answer?
+# Fig C, ROC-style: does embedding score predict biased answer?
 # ---------------------------------------------------------------------------
 
 def fig_roc(dfs: dict[str, pd.DataFrame], out_dir: Path):

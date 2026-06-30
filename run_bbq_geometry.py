@@ -1,5 +1,5 @@
 """
-BBQ embedding geometry analysis — SAIR-style.
+BBQ embedding geometry analysis, SAIR-style.
 
 For each ambiguous BBQ entry, creates three rows:
     (context + question + stereo_ans,      "biased")
@@ -7,16 +7,16 @@ For each ambiguous BBQ entry, creates three rows:
     (context + question + unknown_ans,     "unknown")
 
 Then tests whether label classes separate in embedding space:
-    1. Clustering  — pairwise centroid cosine sim + Cohen's d on PC1
-    2. Classification — logistic regression, 5-fold stratified CV
-    3. Visualisation — PCA scatter, t-SNE scatter, cosine similarity distributions
+    1. Clustering, pairwise centroid cosine sim + Cohen's d on PC1
+    2. Classification, logistic regression, 5-fold stratified CV
+    3. Visualisation, PCA scatter, t-SNE scatter, cosine similarity distributions
 
 Templates tested (analogous to SAIR's raw / natural / eq1_only):
-    answer_only   — just the answer text
-    cq_answer     — context + question + answer  (what the current anchors use)
-    question_answer — question + answer, no context
-    context_only  — control: same text for all 3 labels from the same entry
-    separate      — [E(cq), E(answer), E(cq)−E(answer), E(cq)⊙E(answer)] concatenated
+    answer_only, just the answer text
+    cq_answer, context + question + answer  (what the current anchors use)
+    question_answer, question + answer, no context
+    context_only, control: same text for all 3 labels from the same entry
+    separate, [E(cq), E(answer), E(cq)−E(answer), E(cq)⊙E(answer)] concatenated
 
 Usage:
     python run_bbq_geometry.py
@@ -258,7 +258,7 @@ def embed_rows(
     if not force and cache.exists():
         saved = torch.load(cache, weights_only=False)
         if saved["template"] == template and len(saved["labels"]) == len(rows):
-            print(f"  [cache] {template} — loaded from {cache.name}")
+            print(f"  [cache] {template}, loaded from {cache.name}")
             return saved["embeddings"], saved["labels"]
 
     if template == "answer_only":
@@ -536,7 +536,7 @@ def plot_summary_heatmap(results_df: pd.DataFrame, category: str):
                             fontsize=7, color="black")
         fig.colorbar(im, ax=ax, fraction=0.046)
 
-    fig.suptitle(f"BBQ {category} — embedding geometry", fontsize=10)
+    fig.suptitle(f"BBQ {category}, embedding geometry", fontsize=10)
     fig.tight_layout()
     out = OUT_DIR / f"{category}_summary_heatmap.pdf"
     fig.savefig(out, bbox_inches="tight")
@@ -568,7 +568,7 @@ def run_category(category: str, templates: list[str], max_examples: int | None,
     print(f"  {n_entries} entries → {len(rows)} rows")
 
     if len(rows) == 0:
-        print("  [error] No rows loaded — check BBQ file and category name.")
+        print("  [error] No rows loaded, check BBQ file and category name.")
         return pd.DataFrame()
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -597,13 +597,13 @@ def run_category(category: str, templates: list[str], max_examples: int | None,
             suffix = ("_binary" if binary else "") + ("_norm" if normalize else "")
             stem = f"{category}_{tmpl}{suffix}"
             plot_pca(embs, labels,
-                     f"{category} / {tmpl} — PCA",
+                     f"{category} / {tmpl}, PCA",
                      OUT_DIR / f"{stem}_pca.png")
             plot_tsne(embs, labels,
-                      f"{category} / {tmpl} — t-SNE",
+                      f"{category} / {tmpl}, t-SNE",
                       OUT_DIR / f"{stem}_tsne.png")
             plot_sim_distributions(embs, labels,
-                                   f"{category} / {tmpl} — cosine sim",
+                                   f"{category} / {tmpl}, cosine sim",
                                    OUT_DIR / f"{stem}_sim.png")
 
     df = pd.DataFrame(all_results)

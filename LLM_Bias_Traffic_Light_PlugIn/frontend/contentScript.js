@@ -410,7 +410,7 @@ function getDeepseekChatMessagesOrdered() {
   // Strategy: use .ds-markdown (stable, non-hashed DeepSeek class) as the authoritative
   // assistant role classifier. Walk up from a markdown block to find the message list
   // container, then classify each sibling row by markdown presence.
-  // This exactly mirrors how ChatGPT uses [data-message-author-role] — a stable marker.
+  // This exactly mirrors how ChatGPT uses [data-message-author-role], a stable marker.
 
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
@@ -1207,12 +1207,12 @@ function extractLatestTurnForGemini() {
 
   const finalizePair = (prompt, answer) => {
     if (!prompt || !answer) return null;
-    
+
     // Also clean the prompt to remove "Vous avez dit" / "You said" markers
     const cleanPrompt = (prompt || "")
       .replace(/(?:vous avez dit|you said)\s*[:\-–]?\s*/gi, "")
       .trim();
-    
+
     const cleanAnswer = (answer || "")
       .replace(/(?:gemini a dit|gemini said)\s*[:\-–]?\s*/gi, "")
       .split("\n")
@@ -1898,7 +1898,7 @@ function detectAndSendLatestTurn() {
       const norm = (s) => (s || "").toLowerCase().replace(/\s+/g, " ").trim();
       const normLoose = (s) =>
         norm(s)
-          .replace(/[.,!?;:()\[\]{}"'\-–—]/g, "")
+          .replace(/[.,!?;:()\[\]{}"'\-–, ]/g, "")
           .replace(/\s+/g, " ")
           .trim();
 

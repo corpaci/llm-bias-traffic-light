@@ -5,7 +5,7 @@ title: Appendix
 
 # Appendix
 
-## A. Plugin UI description + screenshots 
+## A. Plugin UI description + screenshots
 
 The extension surfaces in two places: a **popup** (320 px wide) opened by clicking the toolbar
 icon, and one or more **floating overlay boxes** pinned to the bottom-right corner of supported
@@ -19,9 +19,9 @@ automatic-capture behaviour. After a scan the header background tints green (Low
 
 **Action controls.**
 
-- *Scan page* — one-click full-page scan. Extracts all visible text from the active tab and
+- *Scan page*, one-click full-page scan. Extracts all visible text from the active tab and
   sends it to the `/analyze` backend endpoint.
-- *Past conversation / Scan conversation* — shown only on supported LLM pages. A drop-down
+- *Past conversation / Scan conversation*, shown only on supported LLM pages. A drop-down
   (`<select>`) lists every detected user–assistant turn; selecting one previews the prompt,
   context, and answer, then "Scan conversation" submits just that turn for analysis.
 
@@ -47,13 +47,13 @@ for the prompt and context fields.
 
 **Result card.** Hidden until a scan completes. Contains:
 
-- *Risk badge* — colour-coded "Low / Medium / High" label plus a percentage score (e.g.
+- *Risk badge*, colour-coded "Low / Medium / High" label plus a percentage score (e.g.
   "63%").
-- *Explanation* — free-text rationale returned by the backend, including per-category
+- *Explanation*, free-text rationale returned by the backend, including per-category
   sub-scores (e.g. `gender: 0.312 (female)`).
-- *Radar chart* — an HTML5 `<canvas>` spider plot with one axis per requested bias category,
+- *Radar chart*, an HTML5 `<canvas>` spider plot with one axis per requested bias category,
   drawn directly in the popup with a concentric-grid layout.
-- *Flagged sentences* — scrollable list of sentences the backend identified as
+- *Flagged sentences*, scrollable list of sentences the backend identified as
   bias-bearing; the same sentences are highlighted in yellow on the live page.
 
 ### A.2 On-page floating overlays
@@ -95,7 +95,7 @@ The extension is active on five platforms: **ChatGPT** (`chat.openai.com`, `chat
 (`chat.deepseek.com`). Below are representative end-to-end examples illustrating the three
 traffic-light outcomes.
 
-### B.1 Green (Low, score < 0.25) — neutral factual answer
+### B.1 Green (Low, score < 0.25), neutral factual answer
 
 **Platform:** Chatgpt
 
@@ -119,7 +119,7 @@ From the facts you've provided, the only thing we can say is that your Mozambica
 </figure>
 
 
-### B.2 Amber (Medium, 0.25 ≤ score < 0.55) — implicit stereotype
+### B.2 Amber (Medium, 0.25 ≤ score < 0.55), implicit stereotype
 
 **Platform:** Gemini
 
@@ -138,7 +138,7 @@ The woman was serving as the secretary or note-taker for the meeting."*
 </figure>
 
 
-### B.3 Red (High, score ≥ 0.55) — explicit demographic assertion
+### B.3 Red (High, score ≥ 0.55), explicit demographic assertion
 
 **Platform:** Claude
 
@@ -213,11 +213,11 @@ keeps the richest one (ranked by paragraph count and character length).
 
 Before any turn is submitted for analysis, two layers of filtering are applied:
 
-1. **`isExtensionOrChatUiNoise(text)`** — rejects short strings and strings matching known
+1. **`isExtensionOrChatUiNoise(text)`**, rejects short strings and strings matching known
    UI chrome patterns (e.g. `"bias detector"`, `"scan page"`, `"traffic light"`, model-name
    labels such as `"Claude Sonnet"`, disclaimer footers). This prevents the extension's own
    overlay boxes from being captured as conversation content.
-2. **`hasMeaningfulConversationPair(pair)`** — validates that both the prompt and answer are
+2. **`hasMeaningfulConversationPair(pair)`**, validates that both the prompt and answer are
    non-empty, have minimum lengths (≥ 8 and ≥ 12 characters respectively), are not identical,
    and do not contain known UI-noise substrings. A normalised overlap check rejects pairs
    where one side is a near-substring of the other (overlap ratio ≥ 0.82).
@@ -275,11 +275,11 @@ warm, mean over 25 runs. Cold start adds a one-time ~20–25 s for model + ancho
 | --------------------------------------- | -----------: |
 | Embed one sentence                      |           23 |
 | Embed full answer (4 sentences)         |           31 |
-| Score — Normal mode (1 category)       |           53 |
-| Score — Deep mode (per-sentence)       |           67 |
+| Score, Normal mode (1 category)       |           53 |
+| Score, Deep mode (per-sentence)       |           67 |
 | End-to-end`/analyze` (HTTP, 1 category) |     ~70–140 |
 
-Scoring is **~50–70 ms** (sub-200 ms end-to-end) — comfortably within real-time /
+Scoring is **~50–70 ms** (sub-200 ms end-to-end), comfortably within real-time /
 human-perceptible limits. Multi-category requests scale roughly linearly with the number of
 selected categories. DOM **text extraction is client-side** and is not included here; on long
 pages it can exceed 5 s and dominates perceived latency (reported separately).
@@ -310,7 +310,7 @@ At the level of individual answers (_n_ ≈ 185k), the embedding score **cleanly
 _committed_ directional answers from abstentions**: mean score 0.63 (stereotyped) and 0.61
 (anti-stereotyped) vs **0.19 (unknown)**, giving **AUC = 0.84** for detecting a committed
 demographic answer. In ambiguous BBQ contexts, committing to _any_ demographic answer rather
-than abstaining _is_ the bias behaviour — so this is the operative signal for the traffic light.
+than abstaining _is_ the bias behaviour, so this is the operative signal for the traffic light.
 
 It does **not** classify stereotype _direction_: distinguishing stereotyped from
 anti-stereotyped committed answers is at chance (**AUC = 0.51**). The tool is therefore a strong
@@ -343,18 +343,18 @@ recovers the question-specific direction. Direction is therefore best read from 
 answer choice; the embedding provides the answer-agnostic, real-time **risk** signal.
 
 <figure>
-  <img src="direction_ablation.png" alt="Direction separability by method — all near chance">
-  <figcaption>Direction separability by method — all near chance</figcaption>
+  <img src="direction_ablation.png" alt="Direction separability by method, all near chance">
+  <figcaption>Direction separability by method, all near chance</figcaption>
 </figure>
 
 ### Cell-level correlation
 
 Across the 39 cells with a defined behavioural score, the local embedding bias is **linearly
-associated** with the behavioural BBQ bias — **Pearson _r_ ≈ 0.61** (Mahalanobis _r_ ≈ 0.55).
+associated** with the behavioural BBQ bias, **Pearson _r_ ≈ 0.61** (Mahalanobis _r_ ≈ 0.55).
 However, the **rank** agreement is weak (**Spearman _ρ_ ≈ 0.23**): the linear correlation is
 carried by the genuinely high-bias cells (DeepSeek's committed answers, GPT-5 on Age), while
-among the many low-behavioural-bias cells — where models abstain heavily, compressing the
-behavioural score toward 0 — the embedding score does not discriminate finely.
+among the many low-behavioural-bias cells, where models abstain heavily, compressing the
+behavioural score toward 0, the embedding score does not discriminate finely.
 
 **Interpretation:** the zero-token embedding traffic light is a reliable **coarse flag** for
 clearly biased outputs (high end), but **not a fine-grained rank oracle**. This is a more
@@ -372,7 +372,7 @@ Claude 94.4%) show the least stereotype lean; DeepSeek commits far more often (a
 72.8%) and shows the highest behavioural bias. The abstention↔bias relationship is consistent
 across categories.
 
-**Per-category note:** bias is not uniform within a model — e.g., GPT-5's behavioural bias is
+**Per-category note:** bias is not uniform within a model, e.g., GPT-5's behavioural bias is
 concentrated in **Age** (ambig. bias 0.308; it abstains only 60.5% there) and SES, while it is
 near-zero on the other categories.
 
@@ -380,7 +380,7 @@ near-zero on the other categories.
 Pearson correlations among the cell-level metrics. Behavioural bias is almost perfectly
 anti-correlated with abstention (−0.93) and tracks the stereotype rate (0.89); the embedding /
 Mahalanobis scores correlate with behavioural bias at ≈0.6, while disambiguated **accuracy is
-essentially uncorrelated with bias** — capability and fairness are distinct axes.
+essentially uncorrelated with bias**, capability and fairness are distinct axes.
 
 <figure>
   <img src="metric_correlation_matrix.png" alt="Metric correlation matrix across model×category cells">

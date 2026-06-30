@@ -1,5 +1,5 @@
 /**
- * Modular on-page overlay hub — bottom-right floating info boxes.
+ * Modular on-page overlay hub, bottom-right floating info boxes.
  * Each block is registered independently and can be toggled on/off.
  */
 (function () {
@@ -284,7 +284,7 @@
       render(result) {
         const biasTypeScores = result?.bias_type_scores || {};
         const hasScores = Object.keys(biasTypeScores).length > 0;
-        
+
         const container = document.createElement("div");
         container.style.display = "flex";
         container.style.flexDirection = "column";
@@ -305,12 +305,12 @@
         canvas.height = 140;
         canvas.style.display = "block";
         canvas.style.margin = "0 auto";
-        
+
         container.appendChild(canvas);
-        
+
         // Draw the radar chart
         drawRadarChart(canvas, biasTypeScores);
-        
+
         return container;
       },
     },

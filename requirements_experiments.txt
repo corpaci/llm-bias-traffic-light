@@ -1,7 +1,7 @@
 # Dependencies for experiment scripts (Windows-compatible):
-#   run_experiment.py      — LLM probing via API
-#   run_bbq_geometry.py    — embedding geometry analysis (SAIR-style)
-#   visualize_bias.py      — publication figures
+#   run_experiment.py, LLM probing via API
+#   run_bbq_geometry.py, embedding geometry analysis (SAIR-style)
+#   visualize_bias.py, publication figures
 #
 # Install:
 #   pip install -r requirements_experiments.txt

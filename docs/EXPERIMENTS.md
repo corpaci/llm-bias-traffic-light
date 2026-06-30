@@ -20,9 +20,9 @@ Every experiment varies along one or more of these axes:
 
 ---
 
-## Experiment 1 — LLM behavioral probing
+## Experiment 1, LLM behavioral probing
 
-**Script:** `bias_scorer/run_experiment.py`  
+**Script:** `bias_scorer/run_experiment.py`
 **What it does:** Sends BBQ ambiguous multiple-choice questions to a live LLM,
 records which answer it picks, then scores each answer with the embedding metric.
 Produces two scores per response: embedding direction bias + BBQ behavioral score.
@@ -30,7 +30,7 @@ Produces two scores per response: embedding direction bias + BBQ behavioral scor
 ### Run
 
 ```bash
-# Any model via OpenRouter (free tier — add --request-delay 3)
+# Any model via OpenRouter (free tier, add --request-delay 3)
 python -m bias_scorer.run_experiment \
     --llm openrouter \
     --openrouter-model meta-llama/llama-3.2-1b-instruct \
@@ -38,7 +38,7 @@ python -m bias_scorer.run_experiment \
     --output results/experiments-llama-3.2-1b \
     --request-delay 3
 
-# Paid API — no delay needed
+# Paid API, no delay needed
 python -m bias_scorer.run_experiment \
     --llm openrouter \
     --openrouter-model openai/gpt-oss-120b \
@@ -53,7 +53,7 @@ python -m bias_scorer.run_experiment --llm openrouter \
     --openrouter-model openai/gpt-4o-mini --max-examples 100
 ```
 
-### Plugin models (SB — use these slugs on OpenRouter)
+### Plugin models (SB, use these slugs on OpenRouter)
 
 | Plugin label | OpenRouter slug | Notes |
 |---|---|---|
@@ -70,9 +70,9 @@ python -m bias_scorer.run_experiment --llm openrouter \
 | `--openrouter-model` | `openai/gpt-4o-mini` | model slug when using `--llm openrouter` |
 | `--data` | `Gender_identity` | BBQ category filename without `.jsonl` |
 | `--max-examples` | all | limit number of BBQ entries (saves cost + time) |
-| `--request-delay` | `3.0` | seconds between calls — use `0` for paid APIs |
+| `--request-delay` | `3.0` | seconds between calls, use `0` for paid APIs |
 | `--output` | `results/experiments` | output directory |
-| `--input` | — | skip LLM calls; score a pre-collected CSV instead |
+| `--input` |, | skip LLM calls; score a pre-collected CSV instead |
 
 ### Output files
 
@@ -100,9 +100,9 @@ See §Building anchors for a new category below.
 
 ---
 
-## Experiment 2 — Embedding geometry (SAIR-style)
+## Experiment 2, Embedding geometry (SAIR-style)
 
-**Script:** `run_bbq_geometry.py`  
+**Script:** `run_bbq_geometry.py`
 **What it does:** Tests whether the embedding space separates biased from
 anti-biased BBQ answers. Runs clustering stats (centroid similarity, Cohen's d)
 and logistic regression classification (5-fold CV, accuracy, AUC).
@@ -110,7 +110,7 @@ and logistic regression classification (5-fold CV, accuracy, AUC).
 ### Key finding to expect
 
 With `--normalize`: biased and anti-biased overlap almost completely (AUC ≈ 0.5,
-centroid sim ≈ 1.0). This is **expected and meaningful** — it shows the embedder
+centroid sim ≈ 1.0). This is **expected and meaningful**, it shows the embedder
 encodes *which group* the answer mentions, not *whether that choice was stereotyped*.
 This motivates the anchor direction approach used by `bias_scorer`.
 
@@ -150,10 +150,10 @@ python run_bbq_geometry.py --category Nationality --max-examples 100 --no-plots
 | `answer_only` | just the answer text | gender/group of answer only |
 | `cq_answer` | context + question + answer | full BBQ entry |
 | `question_answer` | question + answer | no context |
-| `context_only` | context only (same for all 3 labels) | **control** — no answer signal |
+| `context_only` | context only (same for all 3 labels) | **control**, no answer signal |
 | `separate` | concat of [E(cq), E(ans), E(cq)−E(ans), E(cq)⊙E(ans)] | feature-engineered |
 
-`context_only` is the control — classifier accuracy ≈ chance there confirms no data leakage.
+`context_only` is the control, classifier accuracy ≈ chance there confirms no data leakage.
 
 ### Output
 
@@ -168,16 +168,16 @@ results/bbq_geometry/
 
 ---
 
-## Experiment 3 — Batch geometry (all 11 categories)
+## Experiment 3, Batch geometry (all 11 categories)
 
-**Script:** `run_all_geometry.py`  
+**Script:** `run_all_geometry.py`
 **What it does:** Runs Experiment 2 for every BBQ category and produces the
 summary table used in the paper.
 
 ### Run
 
 ```bash
-# Full run — all 11 categories, raw + normalized, answer_only + cq_answer
+# Full run, all 11 categories, raw + normalized, answer_only + cq_answer
 python run_all_geometry.py
 
 # Subset of categories
@@ -200,20 +200,20 @@ results/figures/geometry_all_cq_answer.pdf
 
 ---
 
-## Experiment 4 — PCA / t-SNE embedding space visualisation
+## Experiment 4, PCA / t-SNE embedding space visualisation
 
-**Script:** `run_bbq_pca.py`  
+**Script:** `run_bbq_pca.py`
 **What it does:** Projects BBQ embeddings into 2D and visualises the structure.
 Three modes produce very different figures.
 
 ### Run
 
 ```bash
-# Mode A: by gender ROLE (male/female/unknown) — shows real separation
+# Mode A: by gender ROLE (male/female/unknown), shows real separation
 # Use this for the paper figure showing the embedder can distinguish genders
 python run_bbq_pca.py --category Gender_identity --by-role
 
-# Mode B: binary biased/anti-biased — shows overlap (negative result)
+# Mode B: binary biased/anti-biased, shows overlap (negative result)
 # Use this to demonstrate why naive classification fails
 python run_bbq_pca.py --category Gender_identity --binary
 
@@ -248,9 +248,9 @@ results/figures/
 
 ---
 
-## Experiment 5 — Publication figures
+## Experiment 5, Publication figures
 
-**Script:** `visualize_bias.py`  
+**Script:** `visualize_bias.py`
 **What it does:** Reads LLM experiment CSVs and produces the three paper figures.
 Requires at least two model result directories.
 
@@ -273,12 +273,12 @@ results/figures/
 
 ---
 
-## Experiment 6 — Metric correlation
+## Experiment 6, Metric correlation
 
-**Script:** `plot_metric_correlation.py`  
+**Script:** `plot_metric_correlation.py`
 **What it does:** Compares embedding bias score (continuous) against BBQ behavioral
 score (did the model choose the stereotyped answer?).
-Requires CSVs that have a `bbq_label` column — re-run experiments after May 2026.
+Requires CSVs that have a `bbq_label` column, re-run experiments after May 2026.
 
 ### Run
 
@@ -321,7 +321,7 @@ results/figures/
 ### B. Run on all bias categories
 
 ```bash
-# Behavioral probing on all 11 categories (slow — ~15 min each at free tier)
+# Behavioral probing on all 11 categories (slow, ~15 min each at free tier)
 for cat in Age Disability_status Gender_identity Nationality \
            Physical_appearance Race_ethnicity Religion SES Sexual_orientation; do
     python -m bias_scorer.run_experiment \
@@ -366,7 +366,7 @@ Currently only `Gender_identity` has pre-built anchors. To add another:
        ...
    ```
 
-3. For the geometry analysis, this isn't needed — `run_bbq_geometry.py` already
+3. For the geometry analysis, this isn't needed, `run_bbq_geometry.py` already
    handles all categories via `_canonicalize`.
 
 ### D. Change the embedding model
@@ -386,7 +386,7 @@ For the anchor-based scoring with a different model, delete the cache to force r
 ```bash
 del bias_scorer\cache\gender_anchors.pt   # Windows
 ```
-Then re-run — the cache will rebuild automatically on next `analyze()` call.
+Then re-run, the cache will rebuild automatically on next `analyze()` call.
 
 ### E. Score pre-collected answers (no API needed)
 

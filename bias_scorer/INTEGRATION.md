@@ -1,4 +1,4 @@
-# bias_scorer — Plugin Integration Reference
+# bias_scorer, Plugin Integration Reference
 
 ## Overview
 
@@ -41,7 +41,7 @@ def analyze(
 
 ---
 
-## BiasResult — what the scorer returns
+## BiasResult, what the scorer returns
 
 | Field | Type | Description |
 |---|---|---|
@@ -121,7 +121,7 @@ direction   = "neutral" if |corrected| < 0.5 × baseline_std
 ```
 
 `baseline_mean` and `baseline_std` are derived from the distribution of scores
-over ambiguous BBQ context+question texts — neutral text that should score near
+over ambiguous BBQ context+question texts, neutral text that should score near
 zero. Cached in `bias_scorer/cache/gender_anchors.pt`.
 
 ---
@@ -130,8 +130,8 @@ zero. Cached in `bias_scorer/cache/gender_anchors.pt`.
 
 On the first request after the backend starts, `analyze()` triggers:
 
-1. `Embedder.__init__` — downloads / loads `all-MiniLM-L6-v2` (~80 MB)
-2. `compute_anchors` — reads cache file if present, otherwise re-embeds ~2 800
+1. `Embedder.__init__`, downloads / loads `all-MiniLM-L6-v2` (~80 MB)
+2. `compute_anchors`, reads cache file if present, otherwise re-embeds ~2 800
    BBQ examples (takes ~30 s on CPU; result is cached to disk)
 
 Subsequent requests use the in-process singleton. No I/O on the hot path.
@@ -150,7 +150,7 @@ rm bias_scorer/cache/gender_anchors.pt
 |---|---|
 | Non-gender bias (race, nationality, religion, …) | BBQ has 10 more categories; anchors must be built per-category |
 | BBQ behavioural score | Implemented in `run_experiment.py` for batch experiments; not exposed via `/analyze` |
-| Free-form text without BBQ structure | Covered — `analyze()` works on any answer string |
+| Free-form text without BBQ structure | Covered, `analyze()` works on any answer string |
 | Real-time per-token streaming | Not supported; scorer runs after the full answer is captured |
 
 ---

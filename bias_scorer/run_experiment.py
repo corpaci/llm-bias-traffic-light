@@ -386,7 +386,7 @@ def main():
     print(f"\nResults saved to {out_path}")
 
     if df.empty:
-        print("\nNo responses scored — check LLM errors above.")
+        print("\nNo responses scored, check LLM errors above.")
         return
 
     print("\n--- Embedding metric ---")
@@ -400,7 +400,7 @@ def main():
     print("\n--- BBQ behavioural metric ---")
     bbq = bbq_bias_score(df)
     if bbq is None:
-        print("  Not available (missing stereo_ans columns — re-run probe to collect).")
+        print("  Not available (missing stereo_ans columns, re-run probe to collect).")
     else:
         print(f"  BBQ bias score: {bbq:+.4f}  (range -1 anti-stereo .. 0 always-unknown .. +1 always-biased)")
         print("  Answer label distribution:")
