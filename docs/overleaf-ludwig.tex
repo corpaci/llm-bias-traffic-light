@@ -1,0 +1,479 @@
+% This is samplepaper.tex, modified for the LLM Bias Traffic Light Tool Paper
+\documentclass[runningheads]{llncs}
+%
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs} % For professional tables
+\usepackage{xcolor}
+
+\begin{document}
+
+\author{Soheyb Boutadjine\inst{1} \and
+Luiza Corpaci\inst{1}\orcidID{0009-0004-4432-6843} \and \\
+Ludwig Kampel\inst{1}\orcidID{0000-0002-1870-5143}}
+%
+\authorrunning{S. Boutadjine et al.}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+\institute{AAAM Research, Association for Advancing Applications of
+Mathematics,\\ Vienna, Austria,
+\url{https://www.aaam.info/}
+\\
+\email{\{sboutadjine,luiza,lkampel\}@aaam.info}}
+
+%
+\title{LLM Bias Traffic Light: A Local, Real-Time Browser Extension for Auditing Algorithmic Fairness}
+\titlerunning{LLM Bias Traffic Light}
+
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract} 
+As Large Language Models (LLMs) reshape how people access information, concerns regarding their tendency to introduce and amplify social biases such as those related to age, nationality, socioeconomic status, amongst others have intensified. While established benchmarks evaluate bias using static, offline datasets, users interacting with live LLM-based AI lack immediate, interpretable feedback regarding the fairness of generated content. To address this gap, we introduce the \textit{LLM Bias Traffic Light}, a real-time, cross-platform browser extension designed to scan, detect, and visually flag social bias in live LLM outputs across the free plans on major platforms, including ChatGPT, Claude, Gemini, and DeepSeek.
+%
+%%
+%
+Operating locally within the browser, our tool ensures user privacy by sharing no data with third parties and requiring no additional API tokens or related computational costs. The system dynamically extracts text from the chat interface and uses a local embedding pipeline to compute a bias measure based on the cosine similarity between the generated context and demographic anchors adapted from the BBQ dataset. 
+%
+%%
+%
+In its \textit{Simple Mode}, the tool provides instant feedback via a visual semaphore. In its \textit{Extended Mode}, it allows users to inspect bias distribution and analyze previous responses in the conversation history. We showcase the tool's effectiveness through an experimental evaluation across multiple models and 11 bias categories, including complex intersectional biases. We believe our tool makes use of embedding-based metrics to improve user experience, strengthening critical thinking and promoting safer, more transparent interactions with generative AI.
+
+\keywords{Large Language Models (LLMs) \and Bias Detection \and Real-time Evaluation \and Algorithmic Fairness \and Sentence Embeddings \and Browser Plugin \and Trustworthy AI.}
+\end{abstract}
+
+
+\section{Introduction}
+
+The rapid proliferation of Large Language Models (LLMs) across critical sectors, including healthcare, education, and software engineering, has raised significant ethical concerns regarding the societal harms and biases they may perpetuate \cite{parrish-etal-2022-bbq,satheesh2025gg,huang2025code}. While these models demonstrate state-of-the-art capabilities in reasoning and generation, they are susceptible to learning and amplifying societal biases present in their massive, often uncurated training data \cite{kraft-etal-2025-social,dai2024ir}. In many instances, these biases manifest in subtle, contextually hidden forms that act as a latent risk, complicating the safe deployment of AI in diverse global and linguistic contexts \cite{dbb2025}.
+
+%
+
+To address these systemic risks, the research community has introduced various evaluation frameworks, notably the Bias Benchmark for Question Answering (BBQ). BBQ established a methodology for measuring social bias by comparing model responses in ambiguous versus disambiguated contexts across nine protected social dimensions \cite{parrish-etal-2022-bbq}. However, as social bias is not a static or universal construct and is instead rooted in regional sociocultural values, follow-up research has seeked to address this gap by adapting the BBQ framework to specific languages and cultures, such as German (GG-BBQ), Chinese (CBBQ), Korean (KoBBQ), and the multilingual Indian and Pakistani contexts (BharatBBQ, PakBBQ) \cite{satheesh2025gg,huang2024cbbq,jin2024kobbq,tomar2025bharatbbq,hashmat2025pakbbq}.
+
+%
+
+Despite this progress, several critical challenges persist. Firstly, traditional term-based benchmarks are increasingly easy for models to game through safety fine-tuning that masks but does not eliminate bias \cite{dbb2025,dutta2024thesis}. Secondly, Large Multimodal Models (LMMs) have introduced new failure modes where visual stereotypes regarding protected groups are triggered by image-question pairs \cite{narnaware2025bbqv,chen2024mllmasajudge}. Third, there is growing evidence that the tools used for evaluation, specifically LLM-as-a-Judge frameworks, contain systematic \textit{OffsetBias} and cognitive inconsistencies that can skew model rankings and lead to unreliable conclusions \cite{gera2025justrank,shi2025cobbler,zheng2023judge}. Furthermore, the use of different and often conflicting metrics can result in inconsistent model rankings, making it difficult for stakeholders to assess true model safety \cite{berrayana2025metric}.
+
+%
+
+In this paper, we propose the \textbf{LLM Bias Traffic Light} framework, a standardized and intuitive diagnostic tool for visualizing bias risks on English text. By synthesizing foundational benchmarks with modern methodological advancements, including adversarial bias elicitation, the Traffic Light system categorizes model behavior into safe (Green), cautionary (Yellow), and high-risk (Red) zones \cite{cantini2025clear,siska-etal-2024-examining}. Our framework offers a comprehensive diagnostic approach that accounts for regional nuances and evaluation robustness, enabling more reliable and culturally aware deployment of foundation models worldwide.
+
+%
+
+The rest of the paper is structured as follows. Section~\ref{sec:related} reviews related work on bias benchmarking and embedding-based fairness metrics. Section~\ref{sec:data} describes the BBQ dataset underlying our anchor construction and scoring pipeline. Section~\ref{sec:design} presents the technical design of the bias scoring mechanism, including the Traffic Light classification logic. Section~\ref{sec:architecture} details the system architecture and data flow of the browser extension. Section~\ref{sec:eval} reports our experimental evaluation across four LLMs and 11 bias categories. Section~\ref{sec:limitations} discusses the limitations of our approach. Section~\ref{sec:future} outlines directions for future work, and Section~\ref{sec:conclusions} concludes the paper.
+
+
+\section{Related Work}
+\label{sec:related}
+
+The systematic quantification of social bias is a multi-disciplinary challenge that has evolved from human-centric diagnostic tools in the social sciences, such as the Implicit Association Test (IAT), to statistical fairness metrics in classical machine learning. In the latter domain, bias is traditionally operationalized through measures of statistical parity or equalized odds across demographic groups. However, the shift toward Large Language Models (LLMs) has rendered these structured data methodologies insufficient, necessitating new frameworks capable of auditing unstructured and high-dimensional semantic outputs.
+
+%
+
+Current LLM bias research relies heavily on standardized benchmarks, most notably the Bias Benchmark for Question Answering (BBQ) \cite{parrish-etal-2022-bbq}. BBQ provides a foundational methodology for evaluating whether model responses default to harmful stereotypes in ambiguous contexts or allow those biases to override correct answers in disambiguated settings. While subsequent regional and linguistic adaptations such as GG-BBQ \cite{satheesh2025gg} and BharatBBQ \cite{tomar2025bharatbbq} have extended this reach to German and Indian contexts respectively, the community is also actively addressing cultural nuances through frameworks like KoBBQ for Korean \cite{jin2024kobbq}, PakBBQ for Pakistani contexts \cite{hashmat2025pakbbq}, and CBBQ for Chinese sociocultural settings \cite{huang2024cbbq}. Nevertheless, these evaluations largely treat models as black boxes, focusing on final output probabilities rather than the internal representations of the model.
+
+%
+
+Alternative approaches have attempted to probe the underlying geometry of model embeddings to identify biased directions in vector space. Foundational work by Bolukbasi et al.\ \cite{bolukbasi2016man} utilized cosine similarity between word vectors to surface gendered associations. Despite their precision, these geometric methods are primarily restricted to the token or word level and fail to account for the semantic nuance of full-sentence structures. Recent findings from the Description-based Bias Benchmark (DBB) demonstrate that while modern LLMs successfully avoid superficial term-level biases, they still perpetuate hidden biases in nuanced, descriptive sentence-level contexts \cite{dbb2025}. To address representation issues, frameworks like BIASLENS offer test-set-free approaches that shift the focus from behavioral outputs to the geometric alignment of intrinsic concept representations \cite{majali2025biaslens}. However, existing sentence-level analysis frameworks remain typically offline and static, serving as post-hoc diagnostic datasets rather than integrated monitoring systems. Linguistic limitations further persist, as most sentence-level detectors are monolingual and do not leverage cross-lingual semantic alignment.
+
+%
+
+Geometric bias measures originate with the Word Embedding Association Test (WEAT)~\cite{caliskan2017}, an IAT-inspired effect size over target and attribute word sets. SEAT~\cite{may2019} upgrades WEAT to sentence encoders via semantically bleached templates, and CEAT~\cite{guo2021ceat} reports a \emph{distribution} of effect sizes across contexts rather than a point estimate. A recurring finding in this line of work is that intrinsic embedding bias tends to overestimate bias and correlates only weakly with bias in downstream generation~\cite{gallegos2024,delobelle2022}. Our detector operates in this embedding family but targets the live-generation setting these studies flag as under-served, and we quantify exactly this intrinsic-extrinsic gap (\S\ref{sec:eval}).
+
+%
+
+Beyond benchmark-driven and embedding-geometric approaches, a separate line of work has explored browser extensions as a deployment vehicle for real-time content flagging. VIGIL \cite{kang2026vigil} is, to our knowledge, the first browser extension for real-time detection and mitigation of cognitive bias triggers in arbitrary web content, offering in-situ scroll-synced detection, LLM-powered reformulation, and a privacy-tiered inference architecture ranging from fully offline to cloud-based execution. Similarly, Aletheia \cite{aletheia2026verify} combines retrieval-augmented generation with an LLM-powered browser extension to flag and explain fake news in real time. While these systems demonstrate the viability of browser-based, real-time content auditing, they target persuasive rhetoric and misinformation rather than social or demographic stereotyping, and both rely on an LLM-in-the-loop (either for reformulation or for RAG-based explanation) rather than a lightweight, fixed embedding-based scoring pipeline. \textit{LLM Bias Traffic Light} instead targets social bias specifically within LLM chat interfaces, using deterministic, encoder-only geometric scoring to avoid the latency and cost overhead of an additional generative model in the auditing loop.
+
+%
+
+Our work, \textit{LLM Bias Traffic Light}, addresses these gaps by introducing a tool that combines embedding-based semantic bias measurement with a real-time, model-agnostic interface. While recent tools like LLM BiasScope \cite{ghosh2026scope} have emerged to provide real-time, sentence-level bias detection and comparative evaluation, \textit{LLM Bias Traffic Light} differentiates itself by operating as a live browser plugin rather than a standalone web application. Unlike static benchmarking datasets or isolated apps, our system employs a local sentence encoder, specifically \texttt{all-MiniLM-L6-v2} \cite{reimers-2019-sbert} for computational efficiency, to quantify bias at the sentence and chunk level. By integrating this logic into a live browser plugin, we bridge the gap between theoretical bias research and proactive software testing, enabling continuous auditing of LLM outputs in production environments.
+
+\section{Data}
+\label{sec:data}
+The \textit{LLM Bias Traffic Light} is grounded in the Bias Benchmark for Question Answering (BBQ)~\cite{parrish-etal-2022-bbq}, a rigorously constructed evaluation corpus designed to measure the extent to which language models rely on attested social stereotypes when producing outputs. BBQ was selected as the foundational reference corpus for this work due to its comprehensive demographic coverage, its methodologically principled disambiguation design, and its established validity in the NLP fairness literature. The dataset is publicly released under the CC-BY~4.0 license and is stored locally within the tool's repository under \texttt{BBQ\_Data/} as newline-delimited JSON (\texttt{.jsonl}) files.
+
+\subsection{Dataset Design and Construction}
+\label{subsec:bbq-design}
+
+BBQ comprises 58,492 unique examples organized into hand-authored templates, each targeting a specific, attested social bias. Templates were written from scratch by domain experts and subsequently validated through crowdworker annotation on Amazon Mechanical Turk, achieving an inter-annotator agreement of Krippendorff's $\alpha = 0.883$ and an aggregate human accuracy of 99.7\% via majority vote~\cite{parrish-etal-2022-bbq}. This validation rigor ensures that the benchmark reflects genuine societal biases rather than annotation artifacts.
+
+Each template instantiates a 3-way multiple-choice question answering (MCQA) format. An example consists of a natural language context paired with a question and three candidate responses (\texttt{ans0}, \texttt{ans1}, \texttt{ans2}), along with a ground-truth label and structured metadata. The core structural fields are as follows:
+
+\begin{itemize}
+  \item Context: A short narrative passage, typically 30--46 words, introducing two individuals who differ along a single demographic dimension.
+  \item Question: A short interrogative prompt averaging 4.6--6.9 words, asking about a property associated with a targeted stereotype.
+  \item Candidate Answers: Three response options, the two individuals referenced in the context, and a neutral uncertainty option (e.g., \textit{``Cannot be determined''}, \textit{``Unknown''}).
+  \item Context Condition (\texttt{context\_condition}): A categorical flag distinguishing two experimental settings:
+    \begin{itemize}
+      \item \textit{Ambiguous} (\texttt{ambig}): These contexts are deliberately under-informative and provide insufficient information to identify the correct answer. They test how strongly model responses reflect social biases when there is no supporting evidence. The ground-truth response is always an expression of uncertainty.
+      \item \textit{Disambiguated} (\texttt{disambig}): These contexts are adequately informative and are augmented with a resolving sentence that uniquely identifies one of the two individuals as the correct answer. This setting tests whether a model's biases override an explicitly available correct answer choice.
+    \end{itemize}
+  \item Question Polarity (\texttt{question\_polarity}): A binary flag distinguishing \textit{negative} (\texttt{neg}) questions, which invoke a harmful stereotype, from \textit{non-negative} (\texttt{nonneg}) questions, which ask for the complementary, non-stereotyped response. This pairing is essential for separating genuine stereotype-driven responses from question-agnostic label preferences.
+\end{itemize}
+
+This two-axis design, context condition $\times$ question polarity, enables a controlled, contrastive assessment of model behavior: in ambiguous settings, it measures whether a model defaults to stereotypical reasoning rather than expressing uncertainty; in disambiguated settings, it measures whether a model's bias overrides an explicitly available correct answer.
+
+\subsection{Original BBQ Behavioral Metric}
+\label{subsec:bbq-metric}
+
+To contextualize our embedding-based approach, it is essential to understand how BBQ originally quantified bias. BBQ measures bias via a ``bias score'' that reflects the percentage of non-UNKNOWN outputs that align with a targeted social bias~\cite{parrish-etal-2022-bbq}. Answers contribute to a positive bias score when the model outputs the bias target in the negative context or the non-target in the non-negative context.
+
+The metric is calculated differently depending on the data split. In disambiguated contexts, the bias score $s_{DIS}$ is defined as:
+\begin{equation}
+  s_{DIS} = 2 \left( \frac{n_{biased\_ans}}{n_{non-UNKNOWN\_outputs}} \right) - 1
+\end{equation}
+
+In ambiguous contexts, the score is scaled by the model's error rate to reflect that biased answers are more harmful if they occur more frequently:
+\begin{equation}
+  s_{AMB} = (1 - \text{accuracy}) \times s_{DIS}
+\end{equation}
+
+A score of 0\% indicates no measured bias, while 100\% indicates all answers align with the targeted stereotype, and -100\% indicates all answers go against the bias.
+
+\subsection{Demographic Coverage and Dataset Scale}
+\label{subsec:bbq-coverage}
+
+BBQ spans 11 distinct demographic dimensions~\cite{parrish-etal-2022-bbq}. This includes nine primary categories aligned with the protected categories defined by the U.S. Equal Employment Opportunities Commission (EEOC), extended to include physical appearance. It further introduces two intersectional categories that probe compound identity biases arising from the co-occurrence of race with gender and race with socioeconomic status, respectively. Each primary category contains a minimum of 25 hand-authored templates; the gender and race/ethnicity categories additionally include 25 templates constructed using demographically stereotyped proper names to capture name-mediated bias.
+
+Table~\ref{tab:bbq} summarizes the distribution of examples across all 11 demographic subsets.
+
+\begin{table}[h]
+\centering
+\caption{BBQ demographic subsets, example counts, and targeted bias dimensions.}
+\label{tab:bbq}
+\begin{tabular}{llr}
+\toprule
+\textbf{Demographic Domain} & \textbf{Targeted Bias Dimension} & \textbf{No.\ Examples} \\
+\midrule
+Age                  & Age-related cognitive and behavioral stereotypes & 3,680  \\
+Disability Status    & Intellectual capacity of disabled individuals    & 1,556  \\
+Gender Identity      & Gender-based competence and role associations    & 5,672  \\
+Nationality          & National origin and cultural stereotypes         & 3,080  \\
+Physical Appearance  & Appearance-based intelligence and conduct bias   & 1,576  \\
+Race / Ethnicity     & Racial and ethnic group associations             & 6,880  \\
+Religion             & Faith-based behavioral and moral stereotypes     & 1,200  \\
+Socioeconomic Status & Class-based parenting and value judgments        & 6,864  \\
+Sexual Orientation   & LGBTQ+ health and behavioral associations        & 864    \\
+Race $\times$ Gender & Intersectional race and gender bias              & 15,960 \\
+Race $\times$ SES    & Intersectional race and socioeconomic bias       & 11,160 \\
+\midrule
+\textbf{Total}       &                                                  & \textbf{58,492} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{category_distribution.png}
+\caption{Distribution of examples across BBQ demographic categories. Intersectional subsets (Race $\times$ Gender and Race $\times$ SES) constitute the largest portions of the corpus, reflecting the combinatorial complexity of multi-axis identity comparisons.}
+\label{fig:bbq-dist}
+\end{figure}
+
+%
+
+All files exhibit high structural integrity, with no missing values across core fields. Every record is a well-formed JSON object with consistent schema annotations, ensuring deterministic parsing and reliable downstream processing within the tool pipeline.
+
+\subsection{Role in the Bias Scoring Pipeline}
+\label{subsec:bbq-role}
+
+Within the \textit{LLM Bias Traffic Light}, the BBQ dataset serves a dual function: as the empirical foundation for constructing demographic anchor vectors and as the calibration corpus for establishing the baseline semantic distribution used in score normalization.
+
+The dataset is accessed programmatically through a dedicated loader module (\texttt{DataLoader/bbq\_loader.py}), which supports both subset-level and full-directory ingestion, enabling flexible experimentation across individual demographic dimensions or the complete corpus.
+
+\paragraph{Anchor vector construction.}
+To capture the full spectrum of societal biases, demographic anchor vectors are derived across all 11 BBQ subsets rather than relying on a single category. From the ambiguous-condition examples within each category, two contrasting semantic anchors are computed:
+
+\begin{itemize}
+  \item Target anchor $\mathbf{a}_{t}$: the L2-normalized centroid of embedding representations of (context, question, answer) triples in which the answer corresponds to the specific targeted disadvantaged group (e.g., female, disabled, elderly).
+  \item Non-target anchor $\mathbf{a}_{nt}$: the corresponding centroid for answer labels targeting the complementary, non-stereotyped group (e.g., male, able-bodied, young).
+\end{itemize}
+
+Restricting anchor computation to ambiguous-condition examples is methodologically deliberate: in this setting, no contextual evidence supports either answer, so any systematic directional asymmetry in the embedding space reflects the model's intrinsic demographic associations rather than contextually justified predictions.
+
+\paragraph{Baseline distribution calibration.}
+A baseline semantic distribution is established by encoding the ambiguous question-context sequences in isolation, yielding a reference mean $\mu_b$ and standard deviation $\sigma_b$. These statistics are used to normalize the raw cosine-distance differential into a bounded bias score on $[0, 1]$, with threshold boundaries calibrated at $\pm 3\sigma_b$ of the baseline. This normalization step ensures that the traffic light indicator is robust to encoder-specific scaling artifacts and remains interpretable across different embedding models.
+
+Both anchor vectors and baseline statistics are precomputed at system initialization and cached to disk, ensuring that real-time inference during browser sessions incurs no additional data loading overhead.
+
+
+
+% -----------------------------------------------------------------------
+\section{Technical Design}
+\label{sec:design}
+
+The proposed validation framework is a lightweight, backend-driven bias scoring service designed to quantify semantic bias in live text streams. It transforms captured LLM input-output interactions into a normalized bias metric, exposed via an on-page three-tier ``traffic light'' indicator, bypassing the computational overhead of generative model execution at evaluation time. The architecture decouples front-end DOM extraction layers within a browser extension from a high-throughput, local FastAPI backend service.
+
+\subsection{Scoring Principle}
+
+The evaluation involves computing deterministic embedding-space projections anchored on the Bias Benchmark for QA (BBQ) dataset~\cite{parrish-etal-2022-bbq}. Methodologically, the score belongs to the family of embedding association tests introduced by WEAT~\cite{caliskan2017} and upgraded to sentence encoders by SEAT~\cite{may2019}: bias is read as the differential cosine proximity of a text to opposing demographic anchor sets. Unlike classical WEAT/SEAT, which rely on hand-built templates and generate a single corpus-level effect size, our anchors are derived from BBQ and the score is computed online on each candidate generation, making it a directed, live variant of SEAT (conforming to the contextual distribution of effect sizes in CEAT~\cite{guo2021ceat}). To establish a stable reference space for directional bias across all measured demographic dimensions, the system maps input tokens to eleven specific programmatic categories covering: Age, Disability status, Gender identity, Nationality, Physical appearance, Race/ethnicity, Religion, Socio-economic status (SES), Sexual
+orientation, as well as the intersectional vectors Race $\times$ Gender and Race $\times$ SES. The framework generates paired target and non-target anchor vectors for each dimension using the following protocol.
+
+\paragraph{Anchor centroid calculation.}
+For each evaluated demographic category, two semantic anchors are derived within the embedding manifold:
+\begin{itemize}
+  \item Target anchor $\mathbf{a}_t$: The centroid vector of embeddings representing
+        ambiguous reference prompts paired with target-oriented responses (denoting the
+        structurally disadvantaged group).
+  \item Non-target anchor $\mathbf{a}_{nt}$: The centroid vector of embeddings representing
+        identical reference prompts paired with non-target-oriented responses.
+\end{itemize}
+
+\paragraph{Differential proximity scoring.}
+For any candidate text segment $x$ under evaluation, semantic alignment for a given category
+is measured by the signed cosine-distance difference relative to both target anchors:
+%
+\begin{equation}
+  \mathrm{raw} = \cos\!\bigl(E(x),\,\mathbf{a}_t\bigr)
+               - \cos\!\bigl(E(x),\,\mathbf{a}_{nt}\bigr),
+  \label{eq:raw}
+\end{equation}
+%
+where $E(x)$ denotes the operational text embedding function. Equation~\eqref{eq:raw} is
+thus an online, directed SEAT statistic evaluated per generation rather than over a fixed
+template corpus. To isolate structural manifold anisotropy, the backend concurrently
+computes a whitened-cosine (Mahalanobis) variant---a covariance-normalised form of the same
+statistic that down-weights high-variance embedding directions, in the spirit of
+fairness-metric robustness analyses~\cite{delobelle2022,gallegos2024}---outputting bounded
+semantic magnitudes scaled on a stable $[0,1]$ interval.
+
+
+\paragraph{Traffic Light Logic.}
+The final scalar bias score is normalized onto the interval $[0,1]$. To provide intuitive, non-disruptive feedback through the user interface components, the framework maps the continuous metric into a discrete three-tier ``traffic light'' classification based on deterministic internal threshold constants:
+\begin{itemize}
+    \item Green (Low Risk): $\mathrm{score} < 0.25$, indicating nominal semantic deviation from neutral references.
+    \item Yellow (Medium Risk): $0.25 \leq \mathrm{score} < 0.55$, flagging a cautionary bias presence.
+    \item Red (High Risk): $\mathrm{score} \geq 0.55$, highlighting high-risk, non-neutral directional skew.
+\end{itemize}
+
+By executing anchor-based projection directly in vector space across the configured categories, the system identifies demographic semantic bias without the need for downstream token classification layers or secondary LLM verification cycles.
+
+
+\subsection{Runtime Behaviour and Hierarchical Roll-up}
+\label{subsec:runtime}
+
+The runtime engine supports two distinct analytical depths tailored to capture varied text distributions:
+\begin{itemize}
+  \item Normal mode. Encodes the full text payload or complete conversational string in a single inference pass to minimize pipeline telemetry latency and ensure real-time throughput. 
+  \item Deep mode. Tokenizes the raw text into structurally distinct paragraphs and sentences, evaluating sentence-level sequences independently. 
+\end{itemize}
+
+In Deep mode, individual sentence scores are aggregated hierarchically up to their parent paragraphs, which then roll up to formulate the global response verdict. The framework processes these combinations dynamically using selectable algebraic weightings:
+\begin{equation}
+  \mathbf{S}_{\mathrm{parent}} = \Phi(\{\mathcal{S}_{\mathrm{child}}\})
+\end{equation}
+where $\Phi$ represents either a character-length-weighted aggregation mechanism (biasing results toward longer, substantive statements), an unweighted arithmetic mean calculation, or a maximum filter function designed to surface isolated, severe localized bias vectors.
+
+\subsection{Practical Efficiency and Robustness Checks}
+\label{subsec:efficiency}
+
+Three core optimizations preserve low client-side resource profiles during active content extraction tasks:
+\begin{itemize}
+  \item Embedding efficiency. The service optimizes deployment workloads via localized execution 
+    of the \texttt{all-MiniLM-L6-v2} encoder using the \texttt{sentence-transformers} library, completing highly responsive vector computation loops without cloud dependency.
+  \item Cross-Embedder Validation. For high-robustness operational constraints, the engine supports cross-model verification loops over alternative embedders (defaulting to concurrent tracking with \texttt{all-mpnet-base-v2}). It tracks categorical divergence scores ($\max - \min$) and evaluates structural level agreement flags across multiple models to expose underlying embedding variances.
+  \item State caching. Target and non-target demographic centroids $\mathbf{a}_t$ and $\mathbf{a}_{nt}$ are generated once and written directly to a local cache directory at initialization, preventing redundant projection cycles during running browser execution loops.
+\end{itemize}
+
+\subsection{Operational Cost and Token Independence}
+\label{subsec:cost}
+
+The scoring pipeline operates as a pure encoder-only architecture. Because the verification path isolates the complete context 
+and avoids calls to external generative models, it eliminates token fees, rate-limit failures, and external vendor dependencies. 
+Latency and operational footprints are bounded entirely by local deterministic tensor inference passes rather than variable, 
+network-dependent generation windows. This design yields predictable performance characteristics across high-throughput client 
+browser loops.
+
+\subsection{Design Rationale}
+\label{subsec:design-rationale}
+
+The architecture balances empirical tracking accuracy against live system extraction speed across three foundational traits:
+\begin{itemize}
+  \item Determinism. Vector-space proximity calculations ensure fully reproducible results across evaluations, 
+        eliminating the sampling stochasticity found in prompting-based validation strategies.
+  \item Simplicity. Offloading bias evaluation checks from large autoregressive setups to linear geometric matrix 
+        operations lowers operational deployment barriers and hardware constraints.
+  \item Modularity. Isolating specific site DOM parsing actions from core algebraic calculations allows the independent 
+        use of the underlying bias analysis library as a standalone tool suited for automated batch evaluations.
+\end{itemize}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{TechnicalDesign.png}
+\caption{System architecture layout, highlighting on-page browser DOM extraction and the hierarchical backend evaluation data pipeline.} 
+\label{fig1}
+\end{figure}
+
+\section{Architecture}
+\label{sec:architecture}
+The tool is built as a modular, service-oriented system with three decoupled layers: a frontend text-capture component, a centralised analysis backend, and a mathematical scoring core.
+
+\subsection{Component Decomposition}
+\label{subsec:components}
+Responsibilities are divided across three logical layers:
+\begin{itemize}
+  \item Browser extension frontend. Runs in the client application layer, intercepting page content, extracting prompt and response boundaries, capturing test configurations, and dispatching JSON payloads to the backend \texttt{/analyze} endpoint.
+  \item FastAPI backend service. Implemented in Python (\texttt{main.py}), this layer exposes the \texttt{/health},
+        \texttt{/debug}, and \texttt{/analyze} endpoints. It handles request validation, manages CORS rules, routes requests to the appropriate embedding algorithm, and assembles structured responses.
+  \item Bias scorer library. A self-contained domain-logic component (\texttt{bias\_scorer}) encapsulating vector normalisation, centroid computation, and geometric scoring. It is decoupled from the web infrastructure to allow independent use in automated testing scripts and command-line experiments.
+\end{itemize}
+This separation keeps frontend development focused on data extraction and presentation, while backend changes are contained to routing and algorithmic concerns.
+
+\subsection{Data Flow and Execution Pipeline}
+\label{subsec:dataflow}
+Execution proceeds through a structured four-stage pipeline:
+\begin{enumerate}
+  \item The frontend monitors DOM mutations via a \texttt{MutationObserver}, applies platform-specific extractors for ChatGPT, Gemini, Claude, and DeepSeek to identify prompt and response boundaries, and decomposes each captured turn into \texttt{question}, \texttt{context}, and \texttt{answer} fields before serialising and transmitting them to the
+        backend.
+  \item The backend instantiates the local embedding model, specifically \texttt{all-MiniLM-L6-v2}, to ensure low-latency evaluation.
+  \item Execution is routed through the \texttt{bias\_scorer.analyze(\ldots)} function.
+  \item The service returns a JSON response containing the overall \texttt{bias\_score}, an array of \texttt{biased\_sentences}, a
+        contextual \texttt{explanation}, per-category scores (\texttt{bias\_type\_scores}), directional lean labels
+        (\texttt{bias\_type\_directions}), Mahalanobis magnitude scores (\texttt{mahal\_type\_scores}), and an optional hierarchical
+        sentence-level breakdown.
+\end{enumerate}
+
+\subsection{Deployment and Privacy}
+\label{subsec:deployment}
+The application backend is stateless. Centroid anchor files are cached on local disk to improve cold-start performance. Because the system relies solely on local embedding inference and exposes a narrow API surface, it is well-suited for containerised deployment (e.g.\ Docker) or on-premise execution, ensuring that sensitive input strings are never transmitted to external networks or third-party servers.
+
+\subsection{Architectural Rationale}
+\label{subsec:arch-rationale}
+Component separation yields three concrete deployment benefits:
+\begin{itemize}
+  \item Extensibility. Clean abstractions reduce cross-layer friction, making additional browser integration and backend scaling more straightforward.
+  \item Operational economy. Bypassing generative token mechanics produces a zero-cost validation loop post-deployment, making
+        large-scale continuous regression testing financially viable.
+  \item Dual-use viability. Decoupling the scoring engine means it serves both as a live browser-integrated validation plugin and as a reliable foundation for batch research metrics.
+\end{itemize}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{Architecture.png}
+\caption{Three-Layer Architecture for Automated Bias Analysis.}
+\label{fig1}
+\end{figure}
+
+% \section{Evaluation}
+
+% \subsection{Technical Setup \& Environment}
+% example : $$$$ We evaluate the operational efficiency and quality profile of our architecture within a localized testing environment. The inference microservice runs locally on a Linux/WSL2 partition (Ubuntu 22.04, Intel i7 CPU, 16GB RAM) running Python 3.10 with FastAPI, while the browser extension frontend is validated across Chromium-based environments.
+
+\section{Evaluation}
+\label{sec:eval}
+
+
+We evaluate the tool on three axes: performance, effectivenes and coverage. As no directly comparable live-browser tool exists, we benchmark the scoring engine against the behavioural ground truth of BBQ rather than a competing system.
+
+\subsection{Experimental Setup}
+\label{subsec:eval-setup}
+The backend runs locally as a single-process FastAPI service; the extension is exercised across Chromium-based browsers. To obtain a behavioural reference we sweep four models: DeepSeek-V3, GPT-5.3, Claude~Sonnet~4.6, and Gemini~3~Flash over a 10\,\% stratified subsample of all 11 BBQ categories, querying each prompt 10 times at temperature~0.7 via OpenRouter (186{,}296 calls with 0.02\,\% empty/refused). Every response is scored by the local engine and independently labelled with the standard BBQ behavioural metric, letting us correlate the tool's geometric score against ground-truth behaviour.
+
+\subsection{Performance and Cost}
+The scoring path is encoder-only and makes no generative calls; it consumes exactly zero LLM tokens regardless of conversation length. Table~\ref{tab:latency} reports latency by stage (CPU, mean of 25 runs).  A single category is scored in $\sim$50--70\,ms and the full \texttt{/analyze} round-trip in $\sim$70--140\,ms. A one-time cold start ($\sim$20--25\,s) loads the model and cached anchors; multi-category requests scale roughly linearly with the number of selected categories. DOM text extraction is client-side and described in APPENDIX C \footnote{\textcolor{red}{add reference to the right one}}
+
+\begin{table}[t]
+\centering
+\caption{Backend latency by stage (CPU, \texttt{all-MiniLM-L6-v2}).}
+\label{tab:latency}
+\begin{tabular}{lr}
+\toprule
+Stage & Latency (ms) \\
+\midrule
+Embed one sentence & 23 \\
+Embed full answer (4 sentences) & 31 \\
+Score: Normal mode (1 category)& 53 \\
+Score: Deep mode (per-sentence)& 67 \\
+End-to-end  (1 category)& 70--140 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Effectiveness: Does the Score Track Real Bias?}
+% We frame the tool as an test oracle for social bias and ask if its geometric score agrees with the BBQ behavioural ground truth.
+
+\paragraph{Per-response detection}
+Over individual answers ($n\approx185\mathrm{k}$), the embedding score separates demographic answers from unknowns with a mean score of $0.63$ (stereotyped) and $0.61$ (anti-stereotyped) versus $0.19$ (unknown), resulting in an AUC $=0.84$ for detecting a committed answer (Fig.~\ref{fig:oracle}). In ambiguous BBQ contexts, committing to any demographic answer instead of abstaining shows biased behaviour, which is the signal we consider behind the traffic light. The score does not show clarity on the stereotyped direction and separating stereotyped from anti-stereotyped committed answers is at chance (AUC $=0.51$) under our current methodology. The tool is therefore a risk flag and not a stereotype-vs-counter-stereotype classifier.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.6\textwidth]{oracle_violin.png}
+\caption{Embedding bias score by answer type (185k responses). Committed answers score far above abstentions (AUC $=0.84$).}
+\label{fig:oracle}
+\end{figure}
+
+\paragraph{Per-model agreement.}
+Aggregated per model (Table~\ref{tab:eval-models}), the geometric and behavioural metrics show the same ordering, where DeepSeek-V3 commits most (abstains $72.8\%$) and is most biased, while Gemini abstains $98.5\%$ and is the least biased. At the level of (model x category), the embedding score correlates with behavioural bias at Pearson $r=0.61$ (with the whitened-cosine $r=0.55$); the rank correlation is weaker (Spearman $\rho=0.23$) which is consistent with a sparse high-end-flag rather than a fine ranker (Appendix~\ref{app:extended}).
+
+\begin{table}[t]
+\centering
+\caption{Per-model bias profile, mean across all 11 BBQ categories (10\,\% per-category subsample, 10 same-prompt 
+repeats, $Temperature{=}0.7$). \emph{Abstention}: ambiguous unknown rate.}
+\label{tab:eval-models}
+\begin{tabular}{lcccccc}
+\toprule
+Model & Embed. & Mahal. & BBQ ambig. & Stereo.\ rate & Abstention & Disambig.\ acc. \\
+\midrule
+DeepSeek-V3 & 0.430 & 0.513 & 0.154 & 0.326 & 0.728 & 0.904 \\
+GPT-5.3 & 0.392 & 0.478 & 0.051 & 0.256 & 0.905 & 0.888 \\
+Claude Sonnet 4.6 & 0.375 & 0.460 & 0.034 & 0.238 & 0.944 & 0.874 \\
+Gemini 3 Flash & 0.342 & 0.432 & 0.025 & 0.191 & 0.985 & 0.766 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Coverage}
+Bias is not uniform within a model as can be seen in Fig.~\ref{fig:biasmap} which maps behavioural bias across all 44 (model x ~category) combinations; GPT-5.3's bias concentrates in Age (and SES) while it is near-zero elsewhere, and DeepSeek shows a broad variance. The tool shows these differentiated patterns across the full BBQ demographic taxonomy.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{bias_map_heatmap.png}
+\caption{Behavioural bias map across four models and 11 BBQ categories.}
+\label{fig:biasmap}
+\end{figure}
+
+\subsection{Performance Evaluation: Runtime \& Token Usage}
+We evaluate the engineering validity of the tool based on two technical performance criteria:
+\begin{enumerate}
+    \item Token Consumption: As designed, the operational token cost for tracking incoming chat elements remains $0$ tokens across all evaluated conversation scales, outperforming generative LLM-as-a-Judge setups.
+    \item Runtime Latency: We measure end-to-end processing delays, containing DOM text capture, microservice serialization, vector embedding generation, and UI state updates. Thanks to the lightweight properties of \texttt{all-MiniLM-L6-v2}, the average execution latency stays under 45ms per sentence block, providing instantaneous updates to the visual semaphore indicator well within human-perceptible real-time limits.
+\end{enumerate}
+
+\section{Limitations}
+\label{sec:limitations}
+Our evaluation uses four free/preview models (DeepSeek-V3, GPT-5.3, Claude~Sonnet~4.6, Gemini~3~Flash) on the English BBQ benchmark; results may not transfer to proprietary frontier models or other languages. The embedding score is a commitment-magnitude signal: it detects when a model makes a demographic-supported assertion (AUC~0.84) but does not resolve stereotype \emph{direction} (AUC~0.51), so a red light indicates risk warranting review and not a confirmed harmful stereotype. The behavioural ground truth inherits BBQ's template-based, US-centric construction. The score is encoder-dependent and its thresholds are calibrated on a baseline distribution rather than human harm judgments. Finally, latency is measured on a single CPU machine, and we report no formal user study. Additionally, the client-side extraction is a practical bottleneck at times.
+
+
+% \section{Future Work}
+
+% Moving forward, our immediate research and engineering roadmap splits into two primary goals:
+% \begin{itemize}
+%     \item \textbf{Advanced Backend \& Metric Integration:} We intend to implement and benchmark alternative geometric distance techniques, such as Mahalanobis distances to counteract dimensional correlation, and Maximum Mean Discrepancy (MMD) to evaluate distribution shifts over extended chat history segments.
+%     \item \textbf{UI \& Accessibility Enhancements:} We aim to expand the browser interface capabilities to support custom user-defined bias anchors, interactive risk-distribution reports within the Extended Mode panel, and localized configurations to adapt the traffic light thresholds to changing global or organizational policy requirements.
+% \end{itemize}
+
+\section{Future Work}
+\label{sec:future}
+
+\begin{itemize}
+  \item Broader \& deeper bias measurement: more models (including proprietary frontier and open-weight families), additional metrics (Maximum Mean Discrepancy over chat history; direction-aware and per-group anchors), multilingual coverage via localized BBQ variants (GG-BBQ, KoBBQ, CBBQ), and free-form conversational data beyond MCQA.
+  \item Plugin features: persistence of measured risk across a conversation and across sessions; a running per-model bias summary built from previously analysed chats; user-defined custom anchors; and policy-configurable traffic-light thresholds.
+\end{itemize}
+
+\section{Conclusions}
+\label{sec:conclusions}
+
+The LLM Bias Traffic Light proves that localized embedding alignments can successfully shift algorithmic fairness auditing from a post-hoc, server-side paradigm directly into the hands of daily users. By mitigating third-party token requirements and rendering instant, non-disruptive color signals, the system offers an accessible blueprint for transparent AI user interfaces.
+
+\begin{credits}
+\subsubsection{\ackname} 
+This work was completed during an AI safety and software reliability research program. The authors express gratitude to academic collaborators and mentors who provided engineering infrastructure and testing support.
+\subsubsection{\discintname} 
+
+\end{credits}
+\newpage
+
+\bibliographystyle{splncs04}
+\bibliography{mybibliography}
+\end{document}
