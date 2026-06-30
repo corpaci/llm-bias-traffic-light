@@ -79,8 +79,16 @@ entire hub to a single "Show bias info" FAB (floating action button), which rest
 Module visibility and the enabled/hidden state are saved to `chrome.storage.local` under the
 key `biasOverlayPrefs` and restored on page load.
 
-![Extension active on a supported page](bias_manual_assets/image1.png)
-![Extension active on a supported page](bias_manual_assets/image2.png)
+<figure>
+  <img src="bias_manual_assets/image1.png" alt="Extension active on a supported page (popup)">
+  <figcaption>The extension active on a supported page (popup).</figcaption>
+</figure>
+
+<figure>
+  <img src="bias_manual_assets/image2.png" alt="Extension active on a supported page (on-page overlays)">
+  <figcaption>The extension active on a supported page (on-page overlays).</figcaption>
+</figure>
+
 ---
 
 ## B. Example bias results from live conversations _(draft)_
@@ -108,7 +116,10 @@ From the facts you've provided, the only thing we can say is that your Mozambica
 **Explanation:** [embedder=sentence_transformers] Category scores -> gender: 0.058 (neutral).
 
 
-![Extension active on a supported page - Green Traffic Light](Bias_Detection_Screenshoots/(1).png)
+<figure>
+  <img src="Bias_Detection_Screenshoots/(1).png" alt="Extension active on a supported page - Green Traffic Light">
+  <figcaption>Extension active on a supported page - Green Traffic Light</figcaption>
+</figure>
 
 
 ### B.2 Amber (Medium, 0.25 ≤ score < 0.55) — implicit stereotype
@@ -124,7 +135,10 @@ The woman was serving as the secretary or note-taker for the meeting."*
 
 **Explanation:** [embedder=sentence_transformers] Category scores -> gender: 0.434 (male).
 
-![Extension active on a supported page - Yellow Traffic Light](Bias_Detection_Screenshoots/(9).png)
+<figure>
+  <img src="Bias_Detection_Screenshoots/(9).png" alt="Extension active on a supported page - Yellow Traffic Light">
+  <figcaption>Extension active on a supported page - Yellow Traffic Light</figcaption>
+</figure>
 
 
 ### B.3 Red (High, score ≥ 0.55) — explicit demographic assertion
@@ -139,7 +153,10 @@ The woman was serving as the secretary or note-taker for the meeting."*
 
 **Explanation:** [embedder=sentence_transformers] Category scores -> gender: 0.903 (male)
 
-![Extension active on a supported page - Red Traffic Light](Bias_Detection_Screenshoots/(11).png)
+<figure>
+  <img src="Bias_Detection_Screenshoots/(11).png" alt="Extension active on a supported page - Red Traffic Light">
+  <figcaption>Extension active on a supported page - Red Traffic Light</figcaption>
+</figure>
 
 ---
 
@@ -303,7 +320,10 @@ anti-stereotyped committed answers is at chance (**AUC = 0.51**). The tool is th
 **risk flag** ("the model made a demographic-laden assertion it should have hedged"), not a
 stereotype-vs-counter-stereotype classifier.
 
-![Embedding score by answer type](oracle_violin.png)
+<figure>
+  <img src="oracle_violin.png" alt="Embedding score by answer type">
+  <figcaption>Embedding score by answer type</figcaption>
+</figure>
 
 ### Why direction isn't recoverable (ablation)
 We tested whether richer inputs recover stereotype direction. Re-scoring committed answers with
@@ -325,7 +345,10 @@ forgetful?"* but the anti-stereotyped answer to *"who is sharp?"*), so no answer
 recovers the question-specific direction. Direction is therefore best read from the behavioural
 answer choice; the embedding provides the answer-agnostic, real-time **risk** signal.
 
-![Direction separability by method — all near chance](direction_ablation.png)
+<figure>
+  <img src="direction_ablation.png" alt="Direction separability by method — all near chance">
+  <figcaption>Direction separability by method — all near chance</figcaption>
+</figure>
 
 ### Cell-level correlation
 
@@ -342,7 +365,10 @@ honest and defensible claim than the headline Pearson value alone, and is consis
 two metrics measuring related-but-distinct things (semantic lean of the emitted text vs.
 abstention-scaled answer choice).
 
-![Embedding bias vs BBQ behavioural bias across 39 model×category cells](embed_vs_bbq_correlation.png)
+<figure>
+  <img src="embed_vs_bbq_correlation.png" alt="Embedding bias vs BBQ behavioural bias across 39 model×category cells">
+  <figcaption>Embedding bias vs BBQ behavioural bias across 39 model×category cells</figcaption>
+</figure>
 
 **Behavioural reading:** models that abstain more in ambiguous contexts (Gemini 98.5%,
 Claude 94.4%) show the least stereotype lean; DeepSeek commits far more often (abstains
@@ -359,11 +385,17 @@ anti-correlated with abstention (−0.93) and tracks the stereotype rate (0.89);
 Mahalanobis scores correlate with behavioural bias at ≈0.6, while disambiguated **accuracy is
 essentially uncorrelated with bias** — capability and fairness are distinct axes.
 
-![Metric correlation matrix across model×category cells](metric_correlation_matrix.png)
+<figure>
+  <img src="metric_correlation_matrix.png" alt="Metric correlation matrix across model×category cells">
+  <figcaption>Metric correlation matrix across model×category cells</figcaption>
+</figure>
 
 ### Bias map (model × category)
 
-![Behavioural bias map across models and BBQ categories](bias_map_heatmap.png)
+<figure>
+  <img src="bias_map_heatmap.png" alt="Behavioural bias map across models and BBQ categories">
+  <figcaption>Behavioural bias map across models and BBQ categories</figcaption>
+</figure>
 
 > Full per-(model × category) numbers: results/sweep/all_run/SUMMARY.csv.
 

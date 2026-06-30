@@ -1,0 +1,82 @@
+/* paper.css — LNCS / LaTeX-like styling for the docs site.
+   Times-like system serif; figure captions auto-numbered as "Fig. N.". */
+
+:root{
+  --ink:#111;
+  --link:#7d2b2b;
+  --page:#ffffff;
+  --bg:#e9e9e9;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  padding:2.5rem 1rem;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:Georgia,"Times New Roman","Nimbus Roman",Times,serif;
+  font-size:11.5pt;
+  line-height:1.45;
+}
+
+/* the "page" */
+.paper{
+  max-width:48rem;
+  margin:0 auto;
+  background:var(--page);
+  padding:3.5rem 4rem;
+  box-shadow:0 1px 8px rgba(0,0,0,.18);
+  text-align:justify;
+  -webkit-hyphens:auto;
+  hyphens:auto;
+  counter-reset:figure table;
+}
+@media (max-width:600px){ .paper{ padding:2rem 1.25rem; } }
+
+/* headings (styled, not auto-numbered) */
+.paper h1{ font-size:1.55rem; font-weight:700; text-align:center;
+           line-height:1.25; margin:.2em 0 1.2em; hyphens:none; }
+.paper h2{ font-size:1.18rem; font-weight:700; margin:1.7em 0 .5em; hyphens:none; }
+.paper h3{ font-size:1.02rem; font-weight:700; margin:1.3em 0 .4em; hyphens:none; }
+.paper h4{ font-size:1rem;    font-weight:700; font-style:italic; margin:1.1em 0 .3em; }
+
+/* body text */
+.paper p{ margin:0 0 .6em; }
+.paper a{ color:var(--link); text-decoration:none; }
+.paper a:hover{ text-decoration:underline; }
+.paper ul,.paper ol{ margin:.4em 0 .9em 1.5em; padding:0; }
+.paper li{ margin:.2em 0; }
+
+/* figures: centered, auto-numbered "Fig. N." */
+figure{ counter-increment:figure; text-align:center; margin:1.6em auto; }
+figure img{ max-width:92%; height:auto; }
+figcaption{ display:block; font-size:.9rem; line-height:1.35;
+            margin:.6em auto 0; max-width:90%; text-align:center; }
+figcaption::before{ content:"Fig.\00a0" counter(figure) ".\00a0"; font-weight:700; }
+
+/* fallback: any stray lone markdown image gets centered too */
+.paper p > img{ display:block; margin:1.2em auto; max-width:92%; height:auto; }
+
+/* tables — booktabs style (horizontal rules only) */
+.paper table{ border-collapse:collapse; margin:1.3em auto; font-size:.93rem; }
+.paper thead th{ border-top:1.6px solid #000; border-bottom:1px solid #000; }
+.paper tbody tr:last-child td{ border-bottom:1.6px solid #000; }
+.paper th,.paper td{ padding:.32em .85em; text-align:left; }
+
+/* code */
+.paper pre,.paper code{
+  font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace; font-size:.86rem; }
+.paper pre{ background:#f6f6f6; border:1px solid #e2e2e2; border-radius:4px;
+            padding:.8em 1em; overflow:auto; text-align:left; }
+.paper code{ background:#f2f2f2; padding:.05em .3em; border-radius:3px; }
+.paper pre code{ background:none; padding:0; }
+
+/* blockquotes / notes */
+.paper blockquote{ margin:1em 1.5em; padding-left:1em;
+  border-left:3px solid #ccc; color:#333; font-size:.97rem; text-align:left; }
+
+.paper hr{ border:none; border-top:1px solid #ccc; margin:1.6em 0; }
+
+/* keep wide equations scrollable instead of overflowing the page */
+mjx-container{ overflow-x:auto; overflow-y:hidden; }

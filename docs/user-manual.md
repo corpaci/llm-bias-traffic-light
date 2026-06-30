@@ -1,3 +1,7 @@
+---
+title: LLM Bias Traffic Light — Browser Extension User Manual
+---
+
 # LLM Bias Traffic Light — Browser Extension User Manual
 
 **Version 1.1.0**
@@ -40,8 +44,14 @@ The extension can work in two ways:
 
 Results are shown in the extension popup and, optionally, as floating boxes directly on the page you are viewing.
 
-![Extension popup showing low risk](bias_manual_assets/image1.png) 
-![Extension popup showing high risk](bias_manual_assets/image2.png) 
+<figure>
+  <img src="bias_manual_assets/image1.png" alt="Extension popup showing low risk">
+  <figcaption>Extension popup showing low risk</figcaption>
+</figure> 
+<figure>
+  <img src="bias_manual_assets/image2.png" alt="Extension popup showing high risk">
+  <figcaption>Extension popup showing high risk</figcaption>
+</figure> 
 
 ## 2. Requirements
 
@@ -63,11 +73,20 @@ LLM Bias Traffic Light is currently distributed as an unpacked extension, intend
 4. Select the folder that contains the extension's files (the `-frontend-` folder — the one with `manifest.json`).
 5. The Bias Detector icon should now appear in your extensions list and toolbar.
 
-![Installation step — enabling Developer mode](bias_manual_assets/image3.png)
+<figure>
+  <img src="bias_manual_assets/image3.png" alt="Installation step — enabling Developer mode">
+  <figcaption>Installation step — enabling Developer mode</figcaption>
+</figure>
 
-![Installation step — Load unpacked button](bias_manual_assets/image4.png)
+<figure>
+  <img src="bias_manual_assets/image4.png" alt="Installation step — Load unpacked button">
+  <figcaption>Installation step — Load unpacked button</figcaption>
+</figure>
 
-![Installation step — selecting the extension folder](bias_manual_assets/image5.png)
+<figure>
+  <img src="bias_manual_assets/image5.png" alt="Installation step — selecting the extension folder">
+  <figcaption>Installation step — selecting the extension folder</figcaption>
+</figure>
 
 ---
 
@@ -78,9 +97,15 @@ LLM Bias Traffic Light is currently distributed as an unpacked extension, intend
 3. Click the Bias Detector icon to open the popup.
 4. If the site is supported, the popup will activate; if not, a warning message will be shown and the controls will be disabled.
 
-![Pinning the extension to the toolbar](bias_manual_assets/image6.png)
+<figure>
+  <img src="bias_manual_assets/image6.png" alt="Pinning the extension to the toolbar">
+  <figcaption>Pinning the extension to the toolbar</figcaption>
+</figure>
 
-![Extension active on a supported page](bias_manual_assets/image7.png)
+<figure>
+  <img src="bias_manual_assets/image7.png" alt="Extension active on a supported page">
+  <figcaption>Extension active on a supported page</figcaption>
+</figure>
 
 ---
 
@@ -109,7 +134,10 @@ On supported AI chat sites, the extension watches the page for new assistant mes
 - You do not need to click anything for this to happen — simply chat normally with the AI.
 - Open the popup at any time to see the most recent automatic result; it is restored even if you closed and reopened the popup.
 
-![Automatic scan result displayed in the popup](bias_manual_assets/image8.png)
+<figure>
+  <img src="bias_manual_assets/image8.png" alt="Automatic scan result displayed in the popup">
+  <figcaption>Automatic scan result displayed in the popup</figcaption>
+</figure>
 
 ---
 
@@ -117,7 +145,10 @@ On supported AI chat sites, the extension watches the page for new assistant mes
 
 Click **Scan page** to collect all readable text from the active tab and send it to the backend for analysis. This is useful for pages that are not automatically monitored, or to re-analyze the page on demand.
 
-![Manual scan — Scan page button](bias_manual_assets/image9.png)
+<figure>
+  <img src="bias_manual_assets/image9.png" alt="Manual scan — Scan page button">
+  <figcaption>Manual scan — Scan page button</figcaption>
+</figure>
 
 ---
 
@@ -125,9 +156,15 @@ Click **Scan page** to collect all readable text from the active tab and send it
 
 On supported AI chat sites, the **Past conversation** dropdown lists the question/answer turns detected on the page. Select a turn to preview its prompt, context, and answer in the LLM response card, then click **Scan conversation** to analyze that specific exchange.
 
-![Past conversation dropdown — selecting a turn](bias_manual_assets/image10.png)
+<figure>
+  <img src="bias_manual_assets/image10.png" alt="Past conversation dropdown — selecting a turn">
+  <figcaption>Past conversation dropdown — selecting a turn</figcaption>
+</figure>
 
-![Past conversation dropdown — scan conversation button](bias_manual_assets/image11.png)
+<figure>
+  <img src="bias_manual_assets/image11.png" alt="Past conversation dropdown — scan conversation button">
+  <figcaption>Past conversation dropdown — scan conversation button</figcaption>
+</figure>
 
 ---
 
@@ -150,7 +187,10 @@ In addition to the popup, Bias Detector can display a floating set of info boxes
 - The whole overlay can be hidden with the **Hide** button on its toolbar; a small **Show bias info** button then appears so you can bring it back.
 - Which modules appear is controlled from the Settings panel in the popup (see [Section 7.1](#71-on-page-overlays)).
 
-![On-page overlay showing bias information](bias_manual_assets/image2.png)
+<figure>
+  <img src="bias_manual_assets/image2.png" alt="On-page overlay showing bias information">
+  <figcaption>On-page overlay showing bias information</figcaption>
+</figure>
 
 ---
 
@@ -171,7 +211,10 @@ Choose between **Normal** and **Deep** analysis depth. Deep analysis may take lo
 
 Select one or more bias categories to check for, based on the BBQ (Bias Benchmark for QA) categories. You can select multiple categories at once; the radar chart will show one axis per selected category.
 
-![Bias type (BBQ category) selector in the Settings panel](bias_manual_assets/image12.png)
+<figure>
+  <img src="bias_manual_assets/image12.png" alt="Bias type (BBQ category) selector in the Settings panel">
+  <figcaption>Bias type (BBQ category) selector in the Settings panel</figcaption>
+</figure>
 
 Available categories:
 
@@ -224,7 +267,10 @@ Confirm that the backend API server is running and reachable at `http://127.0.0.
 
 This happens automatically on websites that are not in the supported list ([Section 8](#8-supported-platforms)). Switch to a supported AI chat site and reopen the popup.
 
-![Troubleshooting — extension warning on unsupported site](bias_manual_assets/image13.png)
+<figure>
+  <img src="bias_manual_assets/image13.png" alt="Troubleshooting — extension warning on unsupported site">
+  <figcaption>Troubleshooting — extension warning on unsupported site</figcaption>
+</figure>
 
 ---
 
@@ -250,7 +296,10 @@ The risk score is determined by analyzing the frequency, intensity, and context 
 
 Yes. Select multiple categories in the Settings panel; results and the radar chart will reflect all selected categories.
 
-![FAQ — result card with radar chart](bias_manual_assets/image14.png)
+<figure>
+  <img src="bias_manual_assets/image14.png" alt="FAQ — result card with radar chart">
+  <figcaption>FAQ — result card with radar chart</figcaption>
+</figure>
 
 ---
 
