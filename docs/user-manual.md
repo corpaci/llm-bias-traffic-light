@@ -76,17 +76,17 @@ LLM Bias Traffic Light is currently distributed as an unpacked extension, intend
 
 <figure>
   <img src="bias_manual_assets/image3.png" alt="Installation step, enabling Developer mode">
-  <figcaption>Installation step, enabling Developer mode</figcaption>
+  <figcaption>Installation step, after enabling Developer mode, Load unpacked button </figcaption>
 </figure>
 
 <figure>
   <img src="bias_manual_assets/image4.png" alt="Installation step, Load unpacked button">
-  <figcaption>Installation step, Load unpacked button</figcaption>
+  <figcaption>Installation step, selecting the extension folder</figcaption>
 </figure>
 
 <figure>
   <img src="bias_manual_assets/image5.png" alt="Installation step, selecting the extension folder">
-  <figcaption>Installation step, selecting the extension folder</figcaption>
+  <figcaption>After the installation is finished</figcaption>
 </figure>
 
 ---
