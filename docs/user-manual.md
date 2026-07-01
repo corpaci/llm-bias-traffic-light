@@ -46,12 +46,12 @@ Results are shown in the extension popup and, optionally, as floating boxes dire
 
 <figure>
   <img src="bias_manual_assets/image1.png" alt="Extension popup showing low risk">
-  <figcaption>Extension popup showing low risk</figcaption>
+  <figcaption>Extension UI showing Medium risk</figcaption>
 </figure>
 
 <figure>
   <img src="bias_manual_assets/image2.png" alt="Extension popup showing high risk">
-  <figcaption>Extension popup showing high risk</figcaption>
+  <figcaption>Extension popup showing Low risk</figcaption>
 </figure>
 
 ## 2. Requirements
