@@ -19,9 +19,9 @@ automatic-capture behaviour. After a scan the header background tints green (Low
 
 **Action controls.**
 
-- *Scan page*, one-click full-page scan. Extracts all visible text from the active tab and
+- *Scan page*: one-click full-page scan. Extracts all visible text from the active tab and
   sends it to the `/analyze` backend endpoint.
-- *Past conversation / Scan conversation*, shown only on supported LLM pages. A drop-down
+- *Past conversation / Scan conversation*: shown only on supported LLM pages. A drop-down
   (`<select>`) lists every detected user–assistant turn; selecting one previews the prompt,
   context, and answer, then "Scan conversation" submits just that turn for analysis.
 
@@ -47,13 +47,13 @@ for the prompt and context fields.
 
 **Result card.** Hidden until a scan completes. Contains:
 
-- *Risk badge*, colour-coded "Low / Medium / High" label plus a percentage score (e.g.
+- *Risk badge*: colour-coded "Low / Medium / High" label plus a percentage score (e.g.
   "63%").
-- *Explanation*, free-text rationale returned by the backend, including per-category
+- *Explanation*: free-text rationale returned by the backend, including per-category
   sub-scores (e.g. `gender: 0.312 (female)`).
-- *Radar chart*, an HTML5 `<canvas>` spider plot with one axis per requested bias category,
+- *Radar chart*: an HTML5 `<canvas>` spider plot with one axis per requested bias category,
   drawn directly in the popup with a concentric-grid layout.
-- *Flagged sentences*, scrollable list of sentences the backend identified as
+- *Flagged sentences*: scrollable list of sentences the backend identified as
   bias-bearing; the same sentences are highlighted in yellow on the live page.
 
 ### A.2 On-page floating overlays
@@ -179,7 +179,7 @@ overlays) and the popup.
 ### C.2 Platform-specific DOM extraction
 
 Each supported platform uses a dedicated extraction function because the DOM structure, CSS
-class names, and role attributes differ significantly between them.
+class names, and role attributes differ between them.
 
 **ChatGPT** (`extractLatestTurnForChatGPT`): queries `div[data-message-author-role]`
 elements, which carry explicit `user` / `assistant` values. The function walks the list
@@ -213,11 +213,11 @@ keeps the richest one (ranked by paragraph count and character length).
 
 Before any turn is submitted for analysis, two layers of filtering are applied:
 
-1. **`isExtensionOrChatUiNoise(text)`**, rejects short strings and strings matching known
+1. **`isExtensionOrChatUiNoise(text)`**: rejects short strings and strings matching known
    UI chrome patterns (e.g. `"bias detector"`, `"scan page"`, `"traffic light"`, model-name
    labels such as `"Claude Sonnet"`, disclaimer footers). This prevents the extension's own
    overlay boxes from being captured as conversation content.
-2. **`hasMeaningfulConversationPair(pair)`**, validates that both the prompt and answer are
+2. **`hasMeaningfulConversationPair(pair)`**: validates that both the prompt and answer are
    non-empty, have minimum lengths (≥ 8 and ≥ 12 characters respectively), are not identical,
    and do not contain known UI-noise substrings. A normalised overlap check rejects pairs
    where one side is a near-substring of the other (overlap ratio ≥ 0.82).
@@ -275,11 +275,11 @@ warm, mean over 25 runs. Cold start adds a one-time ~20–25 s for model + ancho
 | --------------------------------------- | -----------: |
 | Embed one sentence                      |           23 |
 | Embed full answer (4 sentences)         |           31 |
-| Score, Normal mode (1 category)       |           53 |
-| Score, Deep mode (per-sentence)       |           67 |
+| Score: Normal mode (1 category)       |           53 |
+| Score: Deep mode (per-sentence)       |           67 |
 | End-to-end`/analyze` (HTTP, 1 category) |     ~70–140 |
 
-Scoring is **~50–70 ms** (sub-200 ms end-to-end), comfortably within real-time /
+Scoring is **~50–70 ms** (sub-200 ms end-to-end), within real-time /
 human-perceptible limits. Multi-category requests scale roughly linearly with the number of
 selected categories. DOM **text extraction is client-side** and is not included here; on long
 pages it can exceed 5 s and dominates perceived latency (reported separately).
@@ -306,15 +306,15 @@ excluded from that column.</small>
 
 ### Per-response oracle: does the score flag biased answers?
 
-At the level of individual answers (_n_ ≈ 185k), the embedding score **cleanly separates
+At the level of individual answers (_n_ ≈ 185k), the embedding score **separates
 _committed_ directional answers from abstentions**: mean score 0.63 (stereotyped) and 0.61
 (anti-stereotyped) vs **0.19 (unknown)**, giving **AUC = 0.84** for detecting a committed
 demographic answer. In ambiguous BBQ contexts, committing to _any_ demographic answer rather
 than abstaining _is_ the bias behaviour, so this is the operative signal for the traffic light.
 
 It does **not** classify stereotype _direction_: distinguishing stereotyped from
-anti-stereotyped committed answers is at chance (**AUC = 0.51**). The tool is therefore a strong
-**risk flag** ("the model made a demographic-laden assertion it should have hedged"), not a
+anti-stereotyped committed answers is at chance (**AUC = 0.51**). The tool is therefore a
+**risk flag**, not a
 stereotype-vs-counter-stereotype classifier.
 
 <figure>
@@ -323,7 +323,7 @@ stereotype-vs-counter-stereotype classifier.
 </figure>
 
 ### Why direction isn't recoverable (ablation)
-We tested whether richer inputs recover stereotype direction. Re-scoring committed answers with
+Several richer input compositions were tested for their ability to recover stereotype direction. Re-scoring committed answers with
 **composition-matched anchors** under several text compositions, plus an answer-isolating delta
 formulation and polarity-split anchors, leaves direction at chance throughout:
 
@@ -352,15 +352,12 @@ answer choice; the embedding provides the answer-agnostic, real-time **risk** si
 Across the 39 cells with a defined behavioural score, the local embedding bias is **linearly
 associated** with the behavioural BBQ bias, **Pearson _r_ ≈ 0.61** (Mahalanobis _r_ ≈ 0.55).
 However, the **rank** agreement is weak (**Spearman _ρ_ ≈ 0.23**): the linear correlation is
-carried by the genuinely high-bias cells (DeepSeek's committed answers, GPT-5 on Age), while
+carried by the high-bias cells (DeepSeek's committed answers, GPT-5 on Age), while
 among the many low-behavioural-bias cells, where models abstain heavily, compressing the
 behavioural score toward 0, the embedding score does not discriminate finely.
 
 **Interpretation:** the zero-token embedding traffic light is a reliable **coarse flag** for
-clearly biased outputs (high end), but **not a fine-grained rank oracle**. This is a more
-honest and defensible claim than the headline Pearson value alone, and is consistent with the
-two metrics measuring related-but-distinct things (semantic lean of the emitted text vs.
-abstention-scaled answer choice).
+clearly biased outputs (high end), but **not a fine-grained rank oracle**. The two metrics measure related but distinct quantities: the semantic lean of the emitted text versus the abstention-scaled answer choice.
 
 <figure>
   <img src="embed_vs_bbq_correlation.png" alt="Embedding bias vs BBQ behavioural bias across 39 model×category cells">
